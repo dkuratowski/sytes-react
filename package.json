@@ -1,11 +1,10 @@
 {
-    "name": "@sytes/react",
-    "version": "1.0.0",
-    "scripts": {
-      "test": "echo \"Error: no test specified\" && exit 1"
-    },
-    "workspaces": [
-        "packages/*"
-    ]
+  "name": "@sytes/react",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "devDependencies": {
+    "lerna": "^5.4.0"
   }
-  
+}
