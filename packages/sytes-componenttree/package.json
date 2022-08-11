@@ -1,6 +1,6 @@
 {
   "name": "@sytes/componenttree",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A library for easily implementing the Compound Components Pattern.",
   "author": "Sytes Team",
   "homepage": "https://github.com/dkuratowski/sytes-react#readme",
