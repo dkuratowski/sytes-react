@@ -3,5 +3,5 @@
 module.exports = sytesComponenttree;
 
 function sytesComponenttree() {
-    return "Hello from sytesComponenttree";
+    return "Hello from sytesComponenttree!";
 }
