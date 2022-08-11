@@ -1,24 +1,30 @@
 {
   "name": "@sytes/componenttree",
-  "version": "1.0.1",
+  "version": "0.0.0",
   "description": "A library for easily implementing the Compound Components Pattern.",
   "author": "Sytes Team",
   "homepage": "https://github.com/dkuratowski/sytes-react#readme",
   "license": "MIT",
-  "main": "lib/sytes-componenttree.js",
+  "main": "src/index.js",
   "directories": {
-    "lib": "lib",
-    "test": "__tests__"
+    "lib": "src",
+    "test": "tests"
   },
   "files": [
-    "lib"
+    "src"
+  ],
+  "keywords": [
+    "react",
+    "react-component",
+    "sytes",
+    "compound-components"
   ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/dkuratowski/sytes-react.git"
   },
   "scripts": {
-    "test": "node ./__tests__/sytes-componenttree.test.js"
+    "test": "node ./tests/sytes-componenttree.test.js"
   },
   "bugs": {
     "url": "https://github.com/dkuratowski/sytes-react/issues"
