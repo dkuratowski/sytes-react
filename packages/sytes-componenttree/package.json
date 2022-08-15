@@ -28,5 +28,12 @@
   },
   "bugs": {
     "url": "https://github.com/dkuratowski/sytes-react/issues"
+  },
+  "dependencies": {
+    "@babel/runtime": "^7.18.9"
+  },
+  "peerDependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
   }
 }
