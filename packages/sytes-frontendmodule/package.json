@@ -1,0 +1,45 @@
+{
+    "name": "@sytes/frontendmodule",
+    "version": "0.0.0",
+    "description": "Library for easily implementing interactive frontend modules.",
+    "author": "Sytes Team",
+    "homepage": "https://github.com/dkuratowski/sytes-react#readme",
+    "license": "MIT",
+    "main": "src/index.js",
+    "directories": {
+      "lib": "src",
+      "test": "tests"
+    },
+    "files": [
+      "src"
+    ],
+    "keywords": [
+      "react",
+      "react-component",
+      "sytes",
+      "framework",
+      "frontend"
+    ],
+    "repository": {
+      "type": "git",
+      "url": "git+https://github.com/dkuratowski/sytes-react.git"
+    },
+    "scripts": {
+      "test": "node ./tests/sytes-frontendmodule.test.js"
+    },
+    "bugs": {
+      "url": "https://github.com/dkuratowski/sytes-react/issues"
+    },
+    "dependencies": {
+      "@babel/runtime": "^7.18.9",
+      "@sytes/componenttree": "^0.0.0",
+      "@react-rxjs/core": "^0.9.8",
+      "@react-rxjs/utils": "^0.9.5",
+      "rxjs": "^7.5.6"
+    },
+    "peerDependencies": {
+      "react": "^18.2.0",
+      "react-dom": "^18.2.0"
+    }
+  }
+  
