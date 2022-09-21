@@ -28,15 +28,15 @@ function createQueueItem(request, onCreate, onUpdate, onDelete) {
     }
     else if (request.type === 'update-resource') {
         return {
-            //send: () => axios.put(request.params.resource.apiLinks.self, { data: request.params.data }),
-            send: () => axios.post(request.params.resource.apiLinks.self, { method: 'put', data: request.params.data }),
+            send: () => axios.put(request.params.resource.apiLinks.self, { data: request.params.data }),
+            //send: () => axios.post(request.params.resource.apiLinks.self, { method: 'put', data: request.params.data }),
             receive: response => onUpdate && onUpdate(response.data.data),
         }
     }
     else if (request.type === 'delete-resource') {
         return {
-            //send: () => axios.delete(request.params.resource.apiLinks.self),
-            send: () => axios.post(request.params.resource.apiLinks.self, { method: 'delete' }),
+            send: () => axios.delete(request.params.resource.apiLinks.self),
+            //send: () => axios.post(request.params.resource.apiLinks.self, { method: 'delete' }),
             receive: response => onDelete && onDelete(request.params.resource),
         }
     }
@@ -103,7 +103,7 @@ function processQueue(status) {
 
 const ApiAdapterRender = ({requestBatches, onInit, onCreate, onUpdate, onDelete, onError}) => {
     // console.log('ApiAdapterRender');
-    // console.log('requestBatches: ', requestBatches);
+    // console.log(requestBatches);
     
     const apiAdapterTree = useComponentTree();
     const statusRef = useRef({
