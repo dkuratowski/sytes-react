@@ -1,9 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import axios from 'axios';
 import { ComponentTree, ComponentTreeNodeSearchByTypes, useComponentTree } from '@sytes/componenttree';
-
-axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
-axios.defaults.withCredentials = true;
 
 class InitializeNodeSearch extends ComponentTreeNodeSearchByTypes {
     constructor() {
@@ -19,24 +15,24 @@ const ApiAdapter = ({children, ...restProps}) => {
     );
 }
 
-function createQueueItem(request, onCreate, onUpdate, onDelete) {
+function createQueueItem(httpClient, request, onCreate, onUpdate, onDelete) {
     if (request.type === 'store-resource') {
         return {
-            send: () => axios.post(request.params.collection.apiLinks.self, { data: request.params.data }),
-            receive: response => onCreate && onCreate(request.params.collection, response.data.data),
+            send: () => httpClient.post(request.params.collection.apiLinks.self, { data: request.params.data }),
+            receive: response => onCreate && onCreate(request.params.collection, response.data),
         }
     }
     else if (request.type === 'update-resource') {
         return {
-            send: () => axios.put(request.params.resource.apiLinks.self, { data: request.params.data }),
-            //send: () => axios.post(request.params.resource.apiLinks.self, { method: 'put', data: request.params.data }),
-            receive: response => onUpdate && onUpdate(response.data.data),
+            send: () => httpClient.put(request.params.resource.apiLinks.self, { data: request.params.data }),
+            //send: () => httpClient.post(request.params.resource.apiLinks.self, { method: 'put', data: request.params.data }),
+            receive: response => onUpdate && onUpdate(response.data),
         }
     }
     else if (request.type === 'delete-resource') {
         return {
-            send: () => axios.delete(request.params.resource.apiLinks.self),
-            //send: () => axios.post(request.params.resource.apiLinks.self, { method: 'delete' }),
+            send: () => httpClient.delete(request.params.resource.apiLinks.self),
+            //send: () => httpClient.post(request.params.resource.apiLinks.self, { method: 'delete' }),
             receive: response => onDelete && onDelete(request.params.resource),
         }
     }
@@ -45,6 +41,7 @@ function createQueueItem(request, onCreate, onUpdate, onDelete) {
     }
 }
 
+// TODO: check if this is OK with WPAPIWrapper as the httpClient.
 function createErrorNotification(onError) {
     return (error) => {
         if (onError) {
@@ -101,7 +98,7 @@ function processQueue(status) {
     );
 }
 
-const ApiAdapterRender = ({requestBatches, onInit, onCreate, onUpdate, onDelete, onError}) => {
+const ApiAdapterRender = ({httpClient, requestBatches, onInit, onCreate, onUpdate, onDelete, onError}) => {
     // console.log('ApiAdapterRender');
     // console.log(requestBatches);
     
@@ -127,8 +124,8 @@ const ApiAdapterRender = ({requestBatches, onInit, onCreate, onUpdate, onDelete,
             }
             namesDefined.push(initNode.props.name);
             return {
-                send: () => axios.get(initNode.props.url),
-                receive: response => onInit && onInit(initNode.props.name, response.data.data),
+                send: () => httpClient.get(initNode.props.url),
+                receive: response => onInit && onInit(initNode.props.name, response.data),
             };
         });
         statusRef.current.requestBatchQueue.push(initRequests);
@@ -149,7 +146,7 @@ const ApiAdapterRender = ({requestBatches, onInit, onCreate, onUpdate, onDelete,
             throw new Error('Previous requests not yet finished!');
         }
 
-        const queueItems = requestBatches.map(batch => batch.map(request => createQueueItem(request, onCreate, onUpdate, onDelete)));
+        const queueItems = requestBatches.map(batch => batch.map(request => createQueueItem(httpClient, request, onCreate, onUpdate, onDelete)));
         statusRef.current.requestBatchQueue.push(...queueItems);
         processQueue(statusRef.current);
     }, [requestBatches]);
