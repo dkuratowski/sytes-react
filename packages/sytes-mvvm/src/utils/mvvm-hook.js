@@ -142,3 +142,165 @@ class ApiWrapper {
         this.requestSent = false;
     }
 }
+
+
+// *******************************************************
+
+export function mvvm(command, apiData, apiChanges) {
+    return new MVVM(command, apiData, apiChanges);
+}
+
+class MVVM {
+    constructor() {
+    }
+
+    api = (apiEvents) => {
+        this.apiEvents = apiEvents;
+        return this;
+    }
+
+    init = (initActions) => {
+        this.initActions = initActions;
+        return this;
+    }
+
+    commands = (commandActions) => {
+        this.commandActions = commandActions;
+        return this;
+    }
+
+    model = (update) => {
+        this.updateModel = update;
+        return this;
+    }
+
+    viewmodel = (update, notify) => {
+        this.updateViewModel = update;
+        this.onViewModel = notify;
+        return this;
+    }
+
+    use = (command, apiData, apiChanges) => {
+        this.modelRef = useRef(null);
+        this.statusRef = useRef(this.initActions ? 'init-waiting' : 'idle');
+        this.pendingActionsRef = useRef(this.initActions ? [...this.initActions()] : []);
+
+        // Handle the arrival of a new command from the view.
+        useEffect(() => {
+            if (command === null) {
+                return;
+            }
+
+            if (this.statusRef.current !== 'idle') {
+                throw new Error('Invalid status \'' + this.statusRef.current + '\'!');
+            }
+    
+            if (!(command.type in this.commandActions)) {
+                throw new Error('Invalid user command of type \'' + command.type + '\'!');
+            }
+            
+            // Starting command execution.
+            this.statusRef.current = 'command-exec';
+            const commandHandler = this.commandActions[command.type];
+            this.pendingActionsRef.current.push(...commandHandler(command));
+            const requestSent = this.executeActions(apiData, apiChanges);
+            if (!requestSent) {
+                // Command execution finished.
+                this.statusRef.current = 'idle';
+                try {
+                    const updatedViewModel = this.updateViewModel(this.modelRef.current);
+                    if (updatedViewModel !== undefined) {
+                        this.onViewModel(updatedViewModel);
+                    }
+                    else {
+                        console.log('The function \'updateViewModel\' did not return any value!');
+                        return;
+                    }
+                } catch (error) {
+                    console.error('Error happened during viewmodel update:');
+                    console.error(error);
+                    return;
+                }
+            }
+            else {
+                // Command execution interrupted by API call.
+                this.statusRef.current = 'command-waiting';
+            }
+        }, [command]);
+    
+        // Handle the changes update coming from the API.
+        useEffect(() => {
+            if (apiChanges === null) {
+                return;
+            }
+
+            // Resuming initialization or command execution.
+            if (this.statusRef.current === 'init-waiting') {
+                this.statusRef.current = 'init-exec';
+            }
+            else if (this.statusRef.current === 'command-waiting') {
+                this.statusRef.current = 'command-exec';
+            }
+            else {
+                throw new Error('Invalid status \'' + this.statusRef.current + '\'!');
+            }
+
+            // Update the model state based on the incoming data from the API.
+            try {
+                const updatedModelState = this.updateModel(this.modelRef.current, apiData, apiChanges);
+                if (updatedModelState !== undefined) {
+                    this.modelRef.current = updatedModelState;
+                }
+                else {
+                    console.log('The function \'updateModel\' did not return any value!');
+                    return;
+                }
+            } catch (error) {
+                console.error('Error happened during model update:');
+                console.error(error);
+                return;
+            }
+    
+            const requestSent = this.executeActions(apiData, apiChanges);
+            if (!requestSent) {
+                // Command execution finished.
+                this.statusRef.current = 'idle';
+                try {
+                    const updatedViewModel = this.updateViewModel(this.modelRef.current);
+                    if (updatedViewModel !== undefined) {
+                        this.onViewModel(updatedViewModel);
+                    }
+                    else {
+                        console.log('The function \'updateViewModel\' did not return any value!');
+                        return;
+                    }
+                } catch (error) {
+                    console.error('Error happened during viewmodel update:');
+                    console.error(error);
+                    return;
+                }
+            }
+            else {
+                // Initialization or command execution interrupted by API call.
+                if (this.statusRef.current === 'init-exec') {
+                    this.statusRef.current = 'init-waiting';
+                }
+                else if (this.statusRef.current === 'command-exec') {
+                    this.statusRef.current = 'command-waiting';
+                }
+            }
+        }, [apiChanges]);
+    }
+
+    executeActions = (apiData, apiChanges) => {
+        while (this.pendingActionsRef.current.length > 0) {
+            const action = this.pendingActionsRef.current.shift();
+            const api = new ApiWrapper(this.apiEvents);
+            action(this.modelRef.current, apiData, apiChanges, api);
+            if (api.requestSent) {
+                return true;
+            }
+        }
+        return false;
+    }
+}

@@ -15,11 +15,17 @@ const ApiAdapter = ({children, ...restProps}) => {
     );
 }
 
-function createQueueItem(httpClient, request, onCreate, onUpdate, onDelete) {
+function createQueueItem(httpClient, request, onCreate, onGet, onUpdate, onDelete) {
     if (request.type === 'store-resource') {
         return {
             send: () => httpClient.post(request.params.collection.apiLinks.self, { data: request.params.data }),
             receive: response => onCreate && onCreate(request.params.collection, response.data),
+        }
+    }
+    else if (request.type === 'get-resource') {
+        return {
+            send: () => httpClient.get(request.params.resource.apiLinks.self),
+            receive: response => onGet && onGet(response.data)
         }
     }
     else if (request.type === 'update-resource') {
@@ -98,7 +104,7 @@ function processQueue(status) {
     );
 }
 
-const ApiAdapterRender = ({httpClient, requestBatches, onInit, onCreate, onUpdate, onDelete, onError}) => {
+const ApiAdapterRender = ({httpClient, requestBatches, onInit, onCreate, onGet, onUpdate, onDelete, onError}) => {
     // console.log('ApiAdapterRender');
     // console.log(requestBatches);
     
@@ -146,7 +152,7 @@ const ApiAdapterRender = ({httpClient, requestBatches, onInit, onCreate, onUpdat
             throw new Error('Previous requests not yet finished!');
         }
 
-        const queueItems = requestBatches.map(batch => batch.map(request => createQueueItem(httpClient, request, onCreate, onUpdate, onDelete)));
+        const queueItems = requestBatches.map(batch => batch.map(request => createQueueItem(httpClient, request, onCreate, onGet, onUpdate, onDelete)));
         statusRef.current.requestBatchQueue.push(...queueItems);
         processQueue(statusRef.current);
     }, [requestBatches]);
