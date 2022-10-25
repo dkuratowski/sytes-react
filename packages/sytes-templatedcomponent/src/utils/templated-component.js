@@ -33,9 +33,9 @@ export function useRepeatContext() {
     return repeatContext;
 }
 
-export function useChooseContext() {
+export function useChooseContext(ignoreError = false) {
     const chooseContext = useContext(ChooseCtx);
-    if (!chooseContext) {
+    if (!ignoreError && !chooseContext) {
         throw new Error('ChooseContext not found!')
     }
     return chooseContext;

@@ -29,7 +29,7 @@ export const TemplatedComponent = ({template: Template, templateProps, children}
         return (
             <TemplateCtx.Provider value={templateContext}>
                 <TemplatedComponentCtx.Provider value={new TemplatedComponentContext()}>
-                    {children}
+                    {children} {/* ContentItems and ContentPlaceholders */}
                     <Template {...templateProps} />
                 </TemplatedComponentCtx.Provider>
             </TemplateCtx.Provider>
@@ -66,8 +66,24 @@ function ImplicitTemplate({children}) {
 // Elements for defining the template of a templated component.
 export const RenderContentItem = ({selector, children}) => {
     const templatedComponentContext = useTemplatedComponentContext();
-    const selectedContentItemData = templatedComponentContext.contentItems.find(item => !item.isRendered && (!selector || selector(item.props)));
+    const chooseContext = useChooseContext(true);
+    let selectedContentItemData = null;
+    if (chooseContext && chooseContext.chooseMode) {
+        const firstContentItemData = templatedComponentContext.contentItems.find(item => !item.isRendered);
+        selectedContentItemData = (firstContentItemData && (!selector || selector(firstContentItemData.props))) ? firstContentItemData : null;
+        chooseContext.chooseMode = false;
+    }
+    else {
+        selectedContentItemData = templatedComponentContext.contentItems.find(item => !item.isRendered && (!selector || selector(item.props)));
+    }
     if (selectedContentItemData) {
+        // if (selectedContentItemData.props.name === 'package') {
+        //     console.log('RenderContentItem(name = ' + selectedContentItemData.props.name + ', selected = ' + selectedContentItemData.props.selected + ', disabled = ' + selectedContentItemData.props.disabled + ')');
+        // }
+        // else if (selectedContentItemData.props.name === 'packages') {
+        //     console.log('RenderContentItem(name = ' + selectedContentItemData.props.name + ')');
+        // }
+
         selectedContentItemData.isRendered = true;
         const templateContext = {
             template: ImplicitTemplate,
@@ -90,7 +106,16 @@ export const RenderContentItem = ({selector, children}) => {
 
 export const RenderContentPlaceholder = ({selector, children}) => {
     const templatedComponentContext = useTemplatedComponentContext();
-    const selectedContentPlaceholder = templatedComponentContext.contentPlaceholders.find(placeholder => !placeholder.isRendered && (!selector || selector(placeholder.props)));
+    const chooseContext = useChooseContext(true);
+    let selectedContentPlaceholder = null;
+    if (chooseContext && chooseContext.chooseMode) {
+        const firstContentPlaceholder = templatedComponentContext.contentPlaceholders.find(placeholder => !placeholder.isRendered);
+        selectedContentPlaceholder = (firstContentPlaceholder && (!selector || selector(firstContentPlaceholder.props))) ? firstContentPlaceholder : null;
+        chooseContext.chooseMode = false;
+    }
+    else {
+        selectedContentPlaceholder = templatedComponentContext.contentPlaceholders.find(placeholder => !placeholder.isRendered && (!selector || selector(placeholder.props)));
+    }
     if (selectedContentPlaceholder) {
         selectedContentPlaceholder.isRendered = true;
         return (
@@ -105,6 +130,7 @@ export const RenderContentPlaceholder = ({selector, children}) => {
 }
 
 export const Repeat = ({children}) => {
+    // console.log('Repeat');
     const childrenCopy = React.Children.map(children, child => React.cloneElement(child, {...child.props}));
 
     return (
@@ -153,6 +179,7 @@ const RepeatImpl = {
 }
 
 export const Choose = ({children}) => {
+    // console.log('Choose');
     const childrenCopy = React.Children.map(children, child => React.cloneElement(child, {...child.props}));
     const firstChild = childrenCopy.length > 0 ? childrenCopy[0] : null;
     const remainingChildren = childrenCopy.slice(1);
@@ -161,7 +188,9 @@ export const Choose = ({children}) => {
         return (
             <ChooseCtx.Provider value={{}}>
                 <ChooseImpl.InitRenderCounters />
+                <ChooseImpl.TurnOnChooseMode />
                 {firstChild}
+                <ChooseImpl.TurnOffChooseMode />
                 <ChooseImpl.ContinueIfCountersNotChanged>{remainingChildren}</ChooseImpl.ContinueIfCountersNotChanged>
             </ChooseCtx.Provider>
         );
@@ -182,13 +211,25 @@ const ChooseImpl = {
         return null;
     },
 
+    TurnOnChooseMode: () => {
+        const chooseContext = useChooseContext();
+        chooseContext.chooseMode = true;
+        return null;
+    },
+
+    TurnOffChooseMode: () => {
+        const chooseContext = useChooseContext();
+        chooseContext.chooseMode = false;
+        return null;
+    },
+
     ContinueIfCountersNotChanged: ({children}) => {
         const chooseContext = useChooseContext();
         const templatedComponentContext = useTemplatedComponentContext();
         const renderedContentItems = templatedComponentContext.contentItems.filter(item => item.isRendered);
         const renderedContentPlaceholders = templatedComponentContext.contentPlaceholders.filter(placeholder => placeholder.isRendered);
     
-        if (chooseContext.renderedContentItemsCount === renderedContentItems.length ||
+        if (chooseContext.renderedContentItemsCount === renderedContentItems.length &&
             chooseContext.renderedContentPlaceholdersCount === renderedContentPlaceholders.length) {
     
             const firstChild = children.length > 0 ? children[0] : null;
@@ -196,7 +237,9 @@ const ChooseImpl = {
             if (firstChild) {
                 return (
                     <>
+                        <ChooseImpl.TurnOnChooseMode />
                         {firstChild}
+                        <ChooseImpl.TurnOffChooseMode />
                         <ChooseImpl.ContinueIfCountersNotChanged>{remainingChildren}</ChooseImpl.ContinueIfCountersNotChanged>
                     </>
                 );
