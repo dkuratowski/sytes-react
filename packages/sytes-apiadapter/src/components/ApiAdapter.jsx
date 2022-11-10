@@ -15,7 +15,7 @@ const ApiAdapter = ({children, ...restProps}) => {
     );
 }
 
-function createQueueItem(httpClient, request, onCreate, onGet, onUpdate, onDelete) {
+function createQueueItem(httpClient, request, onCreate, onGet, onUpdate, onDelete, onInvoke) {
     if (request.type === 'store-resource') {
         return {
             send: () => httpClient.post(request.params.collection.apiLinks.self, { data: request.params.data }),
@@ -40,6 +40,12 @@ function createQueueItem(httpClient, request, onCreate, onGet, onUpdate, onDelet
             send: () => httpClient.delete(request.params.resource.apiLinks.self),
             //send: () => httpClient.post(request.params.resource.apiLinks.self, { method: 'delete' }),
             receive: response => onDelete && onDelete(request.params.resource),
+        }
+    }
+    else if (request.type === 'invoke-resource') {
+        return {
+            send: () => httpClient.post(request.params.resource.apiLinks.self + '/' + request.params.procedure, { data: request.params.data }),
+            receive: response => onInvoke && onInvoke(request.params.resource, request.params.procedure, response.data),
         }
     }
     else {
@@ -104,7 +110,7 @@ function processQueue(status) {
     );
 }
 
-const ApiAdapterRender = ({httpClient, requestBatches, onInit, onCreate, onGet, onUpdate, onDelete, onError}) => {
+const ApiAdapterRender = ({httpClient, requestBatches, onInit, onCreate, onGet, onUpdate, onDelete, onInvoke, onError}) => {
     // console.log('ApiAdapterRender');
     // console.log(requestBatches);
     
@@ -152,7 +158,7 @@ const ApiAdapterRender = ({httpClient, requestBatches, onInit, onCreate, onGet, 
             throw new Error('Previous requests not yet finished!');
         }
 
-        const queueItems = requestBatches.map(batch => batch.map(request => createQueueItem(httpClient, request, onCreate, onGet, onUpdate, onDelete)));
+        const queueItems = requestBatches.map(batch => batch.map(request => createQueueItem(httpClient, request, onCreate, onGet, onUpdate, onDelete, onInvoke)));
         statusRef.current.requestBatchQueue.push(...queueItems);
         processQueue(statusRef.current);
     }, [requestBatches]);
