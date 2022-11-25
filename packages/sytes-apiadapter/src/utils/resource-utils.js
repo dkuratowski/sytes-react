@@ -115,7 +115,7 @@ export function areTheSameDocumentResources(resourceA, resourceB) {
         'webLinks' in resourceA && 'self' in resourceA.webLinks &&
         'webLinks' in resourceB && 'self' in resourceB.webLinks &&
         resourceA.webLinks.self === resourceB.webLinks.self
-    )
+    );
 }
 
 // Internal methods
