@@ -98,15 +98,14 @@ export function deleteDocumentResourceFromResourceTree(rootResource, deletedReso
 }
 
 /**
- * Checks whether the given resources are both document resources with the same URI.
+ * Checks whether the given resources have the same URI.
  * 
  * @param {*} resourceA The first resource.
  * @param {*} resourceB The second resource.
  * 
- * @returns True if the given resources are both document resources with the same URI, otherwise false.
+ * @returns True if the given resources have the same URI, otherwise false.
  */
-export function areTheSameDocumentResources(resourceA, resourceB) {
-    // Determine equality based on the URIs of the 2 resources.
+export function compareResourcesByUri(resourceA, resourceB) {
     return (
         'apiLinks' in resourceA && 'self' in resourceA.apiLinks &&
         'apiLinks' in resourceB && 'self' in resourceB.apiLinks &&
@@ -115,6 +114,16 @@ export function areTheSameDocumentResources(resourceA, resourceB) {
         'webLinks' in resourceA && 'self' in resourceA.webLinks &&
         'webLinks' in resourceB && 'self' in resourceB.webLinks &&
         resourceA.webLinks.self === resourceB.webLinks.self
+    );
+}
+
+export function compareResourceUri(resource, uri) {
+    return (
+        'apiLinks' in resource && 'self' in resource.apiLinks &&
+        resource.apiLinks.self === uri
+    ) || (
+        'webLinks' in resource && 'self' in resource.webLinks &&
+        resource.webLinks.self === uri
     );
 }
 
@@ -170,7 +179,7 @@ function replaceDocumentResourceInResourceTreeInternal(rootResource, newResource
 
     if (rootResource.relations) {
         for (const relationName in rootResource.relations) {
-            if (areTheSameDocumentResources(rootResource.relations[relationName], newResource))
+            if (compareResourcesByUri(rootResource.relations[relationName], newResource))
             {
                 rootResource.relations[relationName] = newResource;
                 return true;
@@ -186,7 +195,7 @@ function replaceDocumentResourceInResourceTreeInternal(rootResource, newResource
 }
 
 function replaceDocumentResourceInArrayInternal(array, newResource) {
-    const resourceIdx = array.findIndex(resourceItem => areTheSameDocumentResources(resourceItem, newResource));
+    const resourceIdx = array.findIndex(resourceItem => compareResourcesByUri(resourceItem, newResource));
     if (resourceIdx !== -1) {
         array.splice(resourceIdx, 1, newResource);
         return true;
@@ -212,7 +221,7 @@ function deleteDocumentResourceFromResourceTreeInternal(rootResource, deletedRes
 
     if (rootResource.relations) {
         for (const relationName in rootResource.relations) {
-            if (areTheSameDocumentResources(rootResource.relations[relationName], deletedResource))
+            if (compareResourcesByUri(rootResource.relations[relationName], deletedResource))
             {
                 delete rootResource.relations[relationName];
                 return true;
@@ -228,7 +237,7 @@ function deleteDocumentResourceFromResourceTreeInternal(rootResource, deletedRes
 }
 
 function deleteDocumentResourceFromArrayInternal(array, deletedResource) {
-    const resourceIdx = array.findIndex(resourceItem => areTheSameDocumentResources(resourceItem, deletedResource));
+    const resourceIdx = array.findIndex(resourceItem => compareResourcesByUri(resourceItem, deletedResource));
     if (resourceIdx !== -1) {
         array.splice(resourceIdx, 1);
         return true;
