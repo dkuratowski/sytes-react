@@ -43,13 +43,24 @@ function createQueueItem(httpClient, request, onCreate, onGet, onUpdate, onDelet
         }
     }
     else if (request.type === 'invoke-resource') {
-        return {
-            send: () => httpClient.post(request.params.resource.relations[request.params.procedure].apiLinks.self, { data: request.params.data }),
-            receive: response => onInvoke && onInvoke(request.params.resource, request.params.procedure, response.data),
+        if (request.params.data) {
+            return {
+                send: () => httpClient.post(request.params.resource.relations[request.params.procedure].apiLinks.self, { data: request.params.data }),
+                receive: response => onInvoke && onInvoke(request.params.resource, request.params.procedure, response.data),
+            }
+        }
+        else if (request.params.file) {
+            return {
+                send: () => httpClient.file(request.params.resource.relations[request.params.procedure].apiLinks.self, request.params.file),
+                receive: response => onInvoke && onInvoke(request.params.resource, request.params.procedure, response.data),
+            }
+        }
+        else {
+            throw new Error('Invalid API request. Both request.params.data and request.params.file is missing.');
         }
     }
     else {
-        throw new Error('Invalid API request!');
+        throw new Error('Invalid API request. Unsupported type: ' + request.type);
     }
 }
 
