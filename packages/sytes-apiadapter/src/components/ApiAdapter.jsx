@@ -7,7 +7,7 @@ class InitializeNodeSearch extends ComponentTreeNodeSearchByTypes {
     }
 }
 
-const ApiAdapter = ({children, ...restProps}) => {
+const ApiAdapter = ({ children, ...restProps }) => {
     return (
         <ComponentTree rendering={ApiAdapterRender} rootType='api-adapter' {...restProps}>
             {children}
@@ -44,7 +44,7 @@ function createQueueItem(httpClient, request, onCreate, onGet, onUpdate, onDelet
     }
     else if (request.type === 'invoke-resource') {
         return {
-            send: () => httpClient.post(request.params.resource.apiLinks.self + '/' + request.params.procedure, { data: request.params.data }),
+            send: () => httpClient.post(request.params.resource.relations[request.params.procedure].apiLinks.self, { data: request.params.data }),
             receive: response => onInvoke && onInvoke(request.params.resource, request.params.procedure, response.data),
         }
     }
@@ -106,14 +106,14 @@ function processQueue(status) {
     status.requestBatch = requestBatch;
     status.requestBatch.forEach(request =>
         request.send().then(response => handleRequestFinished(request, response, status))
-                      .catch(error => handleServerError(error, status))
+            .catch(error => handleServerError(error, status))
     );
 }
 
-const ApiAdapterRender = ({httpClient, requestBatches, onInit, onCreate, onGet, onUpdate, onDelete, onInvoke, onError}) => {
+const ApiAdapterRender = ({ httpClient, requestBatches, onInit, onCreate, onGet, onUpdate, onDelete, onInvoke, onError }) => {
     // console.log('ApiAdapterRender');
     // console.log(requestBatches);
-    
+
     const apiAdapterTree = useComponentTree();
     const statusRef = useRef({
         requestBatchQueue: [],          // An array of request batches not yet sent to the backend.
@@ -128,7 +128,7 @@ const ApiAdapterRender = ({httpClient, requestBatches, onInit, onCreate, onGet, 
         const initNodeSearch = new InitializeNodeSearch();
         apiAdapterTree.accept(initNodeSearch);
         const initNodes = initNodeSearch.getResults().map(result => result.node);
-        
+
         const namesDefined = [];
         const initRequests = initNodes.map(initNode => {
             if (namesDefined.includes(initNode.props.name)) {
@@ -166,7 +166,7 @@ const ApiAdapterRender = ({httpClient, requestBatches, onInit, onCreate, onGet, 
     return null;
 }
 
-ApiAdapter.Initialize = ({children, ...initializeProps}) => {
+ApiAdapter.Initialize = ({ children, ...initializeProps }) => {
     return (
         <>
             <ComponentTree.BeginNode type='initialize' props={initializeProps} />
