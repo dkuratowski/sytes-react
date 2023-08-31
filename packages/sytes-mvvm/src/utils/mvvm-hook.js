@@ -144,24 +144,12 @@ class MVVM {
             if (!requestSent) {
                 // Command execution finished.
                 this.statusRef.current = 'idle';
-                try {
-                    const updatedViewModel = this.updateViewModel(this.modelRef.current);
-                    if (updatedViewModel !== undefined) {
-                        this.onViewModel(updatedViewModel);
-                    }
-                    else {
-                        console.log('The function \'updateViewModel\' did not return any value!');
-                        return;
-                    }
-                } catch (error) {
-                    console.error('Error happened during viewmodel update:');
-                    console.error(error);
-                    return;
-                }
+                this._updateViewModel();
             }
             else {
                 // Command execution interrupted by API call.
                 this.statusRef.current = 'command-waiting';
+                this._updateViewModel();
             }
         }, [command]);
 
@@ -203,28 +191,17 @@ class MVVM {
             if (!requestSent) {
                 // Command execution finished.
                 this.statusRef.current = 'idle';
-                try {
-                    const updatedViewModel = this.updateViewModel(this.modelRef.current);
-                    if (updatedViewModel !== undefined) {
-                        this.onViewModel(updatedViewModel);
-                    }
-                    else {
-                        console.log('The function \'updateViewModel\' did not return any value!');
-                        return;
-                    }
-                } catch (error) {
-                    console.error('Error happened during viewmodel update:');
-                    console.error(error);
-                    return;
-                }
+                this._updateViewModel();
             }
             else {
                 // Initialization or command execution interrupted by API call.
                 if (this.statusRef.current === 'init-exec') {
                     this.statusRef.current = 'init-waiting';
+                    this._updateViewModel();
                 }
                 else if (this.statusRef.current === 'command-exec') {
                     this.statusRef.current = 'command-waiting';
+                    this._updateViewModel();
                 }
             }
         }, [apiChanges]);
@@ -240,6 +217,23 @@ class MVVM {
             }
         }
         return false;
+    }
+
+    _updateViewModel = () => {
+        try {
+            const updatedViewModel = this.updateViewModel(this.modelRef.current);
+            if (updatedViewModel !== undefined) {
+                this.onViewModel(updatedViewModel);
+            }
+            else {
+                console.log('The function \'updateViewModel\' did not return any value!');
+                return;
+            }
+        } catch (error) {
+            console.error('Error happened during viewmodel update:');
+            console.error(error);
+            return;
+        }
     }
 }
 
