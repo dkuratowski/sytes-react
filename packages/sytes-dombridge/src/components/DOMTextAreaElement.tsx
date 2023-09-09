@@ -1,5 +1,5 @@
 import { ChangeEventHandler, useEffect } from 'react';
-import { reactEvent } from '../utils/event-utils';
+import { reactChangeEvent } from '../utils/event-utils';
 
 type Props = {
     textAreaElement: HTMLInputElement,
@@ -18,12 +18,12 @@ function DOMTextAreaElement({ textAreaElement, value, disabled, onChange }: Prop
             textAreaElement.removeAttribute('disabled');
         }
 
-        const listener = onChange ? (e: Event) => onChange(reactEvent<HTMLTextAreaElement>(e, 'change')) : (e: Event) => { };
+        const listener = onChange ? (e: Event) => onChange(reactChangeEvent<HTMLTextAreaElement>(e, 'change')) : (e: Event) => { };
         textAreaElement.addEventListener('input', listener);
         return () => {
             textAreaElement.removeEventListener('input', listener);
         }
-    }, [textAreaElement, value, onChange]);
+    }, [textAreaElement, value, disabled, onChange]);
 }
 
 export default DOMTextAreaElement;

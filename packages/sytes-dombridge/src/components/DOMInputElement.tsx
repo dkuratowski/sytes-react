@@ -1,5 +1,5 @@
 import { ChangeEventHandler, useEffect } from 'react';
-import { reactEvent } from '../utils/event-utils';
+import { reactChangeEvent } from '../utils/event-utils';
 
 type Props = {
     inputElement: HTMLInputElement,
@@ -25,12 +25,12 @@ function DOMInputElement({ inputElement, value, checked, disabled, onChange }: P
             inputElement.removeAttribute('disabled');
         }
 
-        const listener = onChange ? (e: Event) => onChange(reactEvent<HTMLInputElement>(e, 'change')) : (e: Event) => { };
+        const listener = onChange ? (e: Event) => onChange(reactChangeEvent<HTMLInputElement>(e, 'change')) : (e: Event) => { };
         inputElement.addEventListener('input', listener);
         return () => {
             inputElement.removeEventListener('input', listener);
         }
-    }, [inputElement, value, checked, onChange]);
+    }, [inputElement, value, checked, disabled, onChange]);
 }
 
 export default DOMInputElement;
