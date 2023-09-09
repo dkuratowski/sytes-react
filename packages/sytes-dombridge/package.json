@@ -1,0 +1,41 @@
+{
+    "name": "@sytes/dombridge",
+    "version": "0.0.0",
+    "description": "Provides components that act as bridges between a React app and elements in the DOM tree outside of that React app.",
+    "author": "Sytes Team",
+    "homepage": "https://github.com/dkuratowski/sytes-react#readme",
+    "license": "MIT",
+    "main": "src/index.ts",
+    "directories": {
+        "lib": "src",
+        "test": "tests"
+    },
+    "files": [
+        "src"
+    ],
+    "keywords": [
+        "react",
+        "react-component",
+        "sytes",
+        "dom",
+        "bridge"
+    ],
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/dkuratowski/sytes-react.git"
+    },
+    "scripts": {
+        "test": "node ./tests/sytes-dombridge.test.js"
+    },
+    "bugs": {
+        "url": "https://github.com/dkuratowski/sytes-react/issues"
+    },
+    "dependencies": {
+        "@babel/runtime": "^7.18.9",
+        "@types/react": "^18.2.21"
+    },
+    "peerDependencies": {
+        "react": "^17.0.0",
+        "react-dom": "^17.0.0"
+    }
+}

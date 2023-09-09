@@ -1,41 +1,40 @@
 {
-    "name": "@sytes/mvvm",
-    "version": "0.0.0",
-    "description": "A custom hook implementing the MVVM (model-view-viewmodel) design pattern.",
-    "author": "Sytes Team",
-    "homepage": "https://github.com/dkuratowski/sytes-react#readme",
-    "license": "MIT",
-    "main": "src/index.js",
-    "directories": {
-      "lib": "src",
-      "test": "tests"
-    },
-    "files": [
-      "src"
-    ],
-    "keywords": [
-      "react",
-      "react-component",
-      "sytes",
-      "mvvm",
-      "model-view-viewmodel"
-    ],
-    "repository": {
-      "type": "git",
-      "url": "git+https://github.com/dkuratowski/sytes-react.git"
-    },
-    "scripts": {
-      "test": "node ./tests/sytes-mvvm.test.js"
-    },
-    "bugs": {
-      "url": "https://github.com/dkuratowski/sytes-react/issues"
-    },
-    "dependencies": {
-      "@babel/runtime": "^7.18.9"
-    },
-    "peerDependencies": {
-      "react": "^17.0.0",
-      "react-dom": "^17.0.0"
-    }
+  "name": "@sytes/mvvm",
+  "version": "0.0.0",
+  "description": "A custom hook implementing the MVVM (model-view-viewmodel) design pattern.",
+  "author": "Sytes Team",
+  "homepage": "https://github.com/dkuratowski/sytes-react#readme",
+  "license": "MIT",
+  "main": "src/index.js",
+  "directories": {
+    "lib": "src",
+    "test": "tests"
+  },
+  "files": [
+    "src"
+  ],
+  "keywords": [
+    "react",
+    "react-component",
+    "sytes",
+    "mvvm",
+    "model-view-viewmodel"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dkuratowski/sytes-react.git"
+  },
+  "scripts": {
+    "test": "node ./tests/sytes-mvvm.test.js"
+  },
+  "bugs": {
+    "url": "https://github.com/dkuratowski/sytes-react/issues"
+  },
+  "dependencies": {
+    "@babel/runtime": "^7.18.9"
+  },
+  "peerDependencies": {
+    "react": "^17.0.0",
+    "react-dom": "^17.0.0"
   }
-  
+}

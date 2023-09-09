@@ -1,45 +1,44 @@
 {
-    "name": "@sytes/fsmarray",
-    "version": "0.0.0",
-    "description": "A container of FSM-based components.",
-    "author": "Sytes Team",
-    "homepage": "https://github.com/dkuratowski/sytes-react#readme",
-    "license": "MIT",
-    "main": "src/index.js",
-    "directories": {
-      "lib": "src",
-      "test": "tests"
-    },
-    "files": [
-      "src"
-    ],
-    "keywords": [
-      "react",
-      "react-component",
-      "sytes",
-      "finite-state-machine",
-      "fsm",
-      "container",
-      "list",
-      "array"
-    ],
-    "repository": {
-      "type": "git",
-      "url": "git+https://github.com/dkuratowski/sytes-react.git"
-    },
-    "scripts": {
-      "test": "node ./tests/sytes-fsmarray.test.js"
-    },
-    "bugs": {
-      "url": "https://github.com/dkuratowski/sytes-react/issues"
-    },
-    "dependencies": {
-      "@babel/runtime": "^7.18.9",
-      "@sytes/componenttree": "^0.0.0"
-    },
-    "peerDependencies": {
-      "react": "^17.0.0",
-      "react-dom": "^17.0.0"
-    }
+  "name": "@sytes/fsmarray",
+  "version": "0.0.0",
+  "description": "A container of FSM-based components.",
+  "author": "Sytes Team",
+  "homepage": "https://github.com/dkuratowski/sytes-react#readme",
+  "license": "MIT",
+  "main": "src/index.js",
+  "directories": {
+    "lib": "src",
+    "test": "tests"
+  },
+  "files": [
+    "src"
+  ],
+  "keywords": [
+    "react",
+    "react-component",
+    "sytes",
+    "finite-state-machine",
+    "fsm",
+    "container",
+    "list",
+    "array"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dkuratowski/sytes-react.git"
+  },
+  "scripts": {
+    "test": "node ./tests/sytes-fsmarray.test.js"
+  },
+  "bugs": {
+    "url": "https://github.com/dkuratowski/sytes-react/issues"
+  },
+  "dependencies": {
+    "@babel/runtime": "^7.18.9",
+    "@sytes/componenttree": "^0.0.0"
+  },
+  "peerDependencies": {
+    "react": "^17.0.0",
+    "react-dom": "^17.0.0"
   }
-  
+}
