@@ -7,7 +7,7 @@ type Props = {
     onClick?: MouseEventHandler<HTMLButtonElement>
 }
 
-function DOMInputElement({ buttonElement, disabled, onClick }: Props) {
+function DOMButtonElement({ buttonElement, disabled, onClick }: Props) {
     useEffect(() => {
         if (disabled) {
             buttonElement.setAttribute('disabled', '');
@@ -24,4 +24,4 @@ function DOMInputElement({ buttonElement, disabled, onClick }: Props) {
     }, [buttonElement, disabled, onClick]);
 }
 
-export default DOMInputElement;
+export default DOMButtonElement;
