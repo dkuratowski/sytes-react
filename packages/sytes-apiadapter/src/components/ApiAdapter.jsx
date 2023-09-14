@@ -20,12 +20,23 @@ function createQueueItem(httpClient, request, onCreate, onGet, onUpdate, onDelet
         return {
             send: () => httpClient.post(request.params.collection.apiLinks.self, { data: request.params.data }),
             receive: response => onCreate && onCreate(request.params.collection, response.data),
-        }
+        };
     }
     else if (request.type === 'get-resource') {
-        return {
-            send: () => httpClient.get(request.params.resource.apiLinks.self),
-            receive: response => onGet && onGet(response.data)
+        if (request.params.resource) {
+            return {
+                send: () => httpClient.get(request.params.resource.apiLinks.self),
+                receive: response => onGet && onGet(response.data)
+            };
+        }
+        else if (request.params.url) {
+            return {
+                send: () => httpClient.get(request.params.url),
+                receive: response => onGet && onGet(response.data)
+            };
+        }
+        else {
+            throw new Error('Invalid API request. Both request.params.resource and request.params.url is missing.');
         }
     }
     else if (request.type === 'update-resource') {
@@ -33,27 +44,27 @@ function createQueueItem(httpClient, request, onCreate, onGet, onUpdate, onDelet
             send: () => httpClient.put(request.params.resource.apiLinks.self, { data: request.params.data }),
             //send: () => httpClient.post(request.params.resource.apiLinks.self, { method: 'put', data: request.params.data }),
             receive: response => onUpdate && onUpdate(response.data),
-        }
+        };
     }
     else if (request.type === 'delete-resource') {
         return {
             send: () => httpClient.delete(request.params.resource.apiLinks.self),
             //send: () => httpClient.post(request.params.resource.apiLinks.self, { method: 'delete' }),
             receive: response => onDelete && onDelete(request.params.resource),
-        }
+        };
     }
     else if (request.type === 'invoke-resource') {
         if (request.params.data) {
             return {
                 send: () => httpClient.post(request.params.resource.relations[request.params.procedure].apiLinks.self, { data: request.params.data }),
                 receive: response => onInvoke && onInvoke(request.params.resource, request.params.procedure, response.data),
-            }
+            };
         }
         else if (request.params.file) {
             return {
                 send: () => httpClient.file(request.params.resource.relations[request.params.procedure].apiLinks.self, request.params.file),
                 receive: response => onInvoke && onInvoke(request.params.resource, request.params.procedure, response.data),
-            }
+            };
         }
         else {
             throw new Error('Invalid API request. Both request.params.data and request.params.file is missing.');
