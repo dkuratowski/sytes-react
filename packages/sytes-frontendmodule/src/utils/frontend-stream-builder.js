@@ -1,16 +1,8 @@
 import { filter, interval, map, merge, scan, share, Subject, tap } from 'rxjs';
-import { createCapacitor } from './capacitor-operator';
+import { capacitor } from './capacitor-operator';
 
 class CapacitorScope {
-    constructor() {
-        [this.capacitorOperator, this.capacitorComponentRenderProps] = createCapacitor();
-    }
-
-    // Return a capacitor operator to the parent context.
-    getData = () => [this.capacitorOperator];
-
-    // Return the created component render properties to the parent context.
-    getComponentRenderProps = () => [this.capacitorComponentRenderProps];
+    getData = () => [capacitor()];
 }
 
 class EntryScope {
