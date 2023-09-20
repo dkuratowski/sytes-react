@@ -15,11 +15,11 @@ const ApiAdapter = ({ children, ...restProps }) => {
     );
 }
 
-function createQueueItem(httpClient, request, onCreate, onGet, onUpdate, onDelete, onInvoke) {
+function createQueueItem(httpClient, request, onStore, onGet, onUpdate, onDelete, onInvoke) {
     if (request.type === 'store-resource') {
         return {
             send: () => httpClient.post(request.params.collection.apiLinks.self, { data: request.params.data }),
-            receive: response => onCreate && onCreate(request.params.collection, response.data),
+            receive: response => onStore && onStore(request.params.collection, response.data),
         };
     }
     else if (request.type === 'get-resource') {
@@ -128,7 +128,11 @@ function processQueue(status) {
     const requestBatch = status.requestBatchQueue.shift();
     if (requestBatch === undefined) {
         // If all request batch has finished, then send the notifications.
-        status.notificationBatchQueue.forEach(notificationBatch => notificationBatch.forEach(notification => notification()));
+        status.notificationBatchQueue.forEach(
+            notificationBatch => notificationBatch.forEach(
+                notification => notification()
+            )
+        );
         status.notificationBatchQueue = [];
         return;
     }
@@ -136,12 +140,24 @@ function processQueue(status) {
     // Save the batch and send each request of it.
     status.requestBatch = requestBatch;
     status.requestBatch.forEach(request =>
-        request.send().then(response => handleRequestFinished(request, response, status))
+        request.send()
+            .then(response => handleRequestFinished(request, response, status))
             .catch(error => handleServerError(error, status))
     );
 }
 
-const ApiAdapterRender = ({ httpClient, requestBatches, onInit, onCreate, onGet, onUpdate, onDelete, onInvoke, onError }) => {
+const ApiAdapterRender = ({
+    httpClient,
+    requestBatches,
+    onInit,         // an init request (defined by an 'ApiAdapter.Initialize' component) has been completed
+    onStore,       // a store request has been completed
+    onGet,          // a get request has been completed
+    onUpdate,       // an update request has been completed
+    onDelete,       // a delete request has been completed
+    onInvoke,       // an invoke request has been completed
+    onError,        // a request has failed
+    onComplete      // every request in the incoming request batch has been completed
+}) => {
     // console.log('ApiAdapterRender');
     // console.log(requestBatches);
 
@@ -189,7 +205,15 @@ const ApiAdapterRender = ({ httpClient, requestBatches, onInit, onCreate, onGet,
             throw new Error('Previous requests not yet finished!');
         }
 
-        const queueItems = requestBatches.map(batch => batch.map(request => createQueueItem(httpClient, request, onCreate, onGet, onUpdate, onDelete, onInvoke)));
+        const queueItems = requestBatches.map(
+            batch => batch.map(
+                request => createQueueItem(httpClient, request, onStore, onGet, onUpdate, onDelete, onInvoke)
+            )
+        );
+        queueItems.push([{
+            send: () => Promise.resolve(requestBatches),
+            receive: requestBatches => onComplete && onComplete(requestBatches)
+        }]);
         statusRef.current.requestBatchQueue.push(...queueItems);
         processQueue(statusRef.current);
     }, [requestBatches]);
