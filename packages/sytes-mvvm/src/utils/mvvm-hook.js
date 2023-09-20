@@ -22,9 +22,11 @@ class MVVM {
      *                          onUpdatePerson: ...,
      *                          onDeletePerson: ...
      *                      }
+     * @param {*} handleApiInterrupt A function that is called when initialization or command execution gets interrupted by API call.
      */
-    api = (apiEvents) => {
+    api = (apiEvents, handleApiInterrupt) => {
         this.apiEvents = apiEvents;
+        this.handleApiInterrupt = handleApiInterrupt;
         return this;
     }
 
@@ -148,6 +150,7 @@ class MVVM {
             }
             else {
                 // Command execution interrupted by API call.
+                this.handleApiInterrupt && this.handleApiInterrupt();
                 this.statusRef.current = 'command-waiting';
                 this._updateViewModel();
             }
@@ -196,10 +199,12 @@ class MVVM {
             else {
                 // Initialization or command execution interrupted by API call.
                 if (this.statusRef.current === 'init-exec') {
+                    this.handleApiInterrupt && this.handleApiInterrupt();
                     this.statusRef.current = 'init-waiting';
                     this._updateViewModel();
                 }
                 else if (this.statusRef.current === 'command-exec') {
+                    this.handleApiInterrupt && this.handleApiInterrupt();
                     this.statusRef.current = 'command-waiting';
                     this._updateViewModel();
                 }
