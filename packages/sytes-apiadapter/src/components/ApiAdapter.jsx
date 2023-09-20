@@ -40,11 +40,20 @@ function createQueueItem(httpClient, request, onCreate, onGet, onUpdate, onDelet
         }
     }
     else if (request.type === 'update-resource') {
-        return {
-            send: () => httpClient.put(request.params.resource.apiLinks.self, { data: request.params.data }),
-            //send: () => httpClient.post(request.params.resource.apiLinks.self, { method: 'put', data: request.params.data }),
-            receive: response => onUpdate && onUpdate(response.data),
-        };
+        if (request.params.resource) {
+            return {
+                send: () => httpClient.put(request.params.resource.apiLinks.self, { data: request.params.data }),
+                //send: () => httpClient.post(request.params.resource.apiLinks.self, { method: 'put', data: request.params.data }),
+                receive: response => onUpdate && onUpdate(response.data),
+            };
+        }
+        else if (request.params.url) {
+            return {
+                send: () => httpClient.put(request.params.url, { data: request.params.data }),
+                //send: () => httpClient.post(request.params.url, { method: 'put', data: request.params.data }),
+                receive: response => onUpdate && onUpdate(response.data),
+            };
+        }
     }
     else if (request.type === 'delete-resource') {
         return {
