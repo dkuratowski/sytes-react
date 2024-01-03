@@ -189,10 +189,10 @@ class MVVM {
                 return;
             }
 
-            // Execute the pending anctions until first request sent.
+            // Execute the pending actions until first request sent.
             const requestSent = this._executeActions(apiData, apiChanges);
             if (!requestSent) {
-                // Command execution finished.
+                // Initialization or command execution finished.
                 this.statusRef.current = 'idle';
                 this._updateViewModel();
             }
