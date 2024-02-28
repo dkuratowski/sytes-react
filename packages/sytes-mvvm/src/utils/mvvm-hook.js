@@ -67,17 +67,19 @@ class MVVM {
     }
 
     /**
-     * Defines the model update function.
+     * Defines the model update function and the initial model state.
      * @param {*} update A function for updating the model based on API data and API changes. The function shall return the updated
-     *                   model if it was updated successfully, undefined if some prerequisites are missing from apiData and/or apiChanges,
+     *                   model if it was updated successfully, 'undefined' if some prerequisites are missing from apiData and/or apiChanges,
      *                   or throw an error in case of error during the model update. Example:
      *                   (model, apiData, apiChanges) => {
      *                     model.someProperty = newPropertyValue;
      *                     return model;
      *                   }
+     * @param {*} initialModelState The initial state of the model. Defaults to 'null'.
      */
-    model = (update) => {
+    model = (update, initialModelState) => {
         this.updateModel = update;
+        this.initialModelState = initialModelState ?? null;
         return this;
     }
 
@@ -120,7 +122,7 @@ class MVVM {
      *                       }
      */
     use = (command, apiData, apiChanges) => {
-        this.modelRef = useRef(null);
+        this.modelRef = useRef(this.initialModelState ?? null);
         this.statusRef = useRef(this.initActions ? 'init-waiting' : 'idle');
         this.pendingActionsRef = useRef(this.initActions ? [...this.initActions()] : []);
 
@@ -146,14 +148,15 @@ class MVVM {
             if (!requestSent) {
                 // Command execution finished.
                 this.statusRef.current = 'idle';
-                this._updateViewModel();
             }
             else {
                 // Command execution interrupted by API call.
                 this.handleApiInterrupt && this.handleApiInterrupt();
                 this.statusRef.current = 'command-waiting';
-                this._updateViewModel();
             }
+
+            // Update the viewmodel.
+            this._updateViewModel();
         }, [command]);
 
         // Handle the changes update coming from the API.
@@ -179,7 +182,7 @@ class MVVM {
                 if (updatedModelState !== undefined) {
                     this.modelRef.current = updatedModelState;
                 }
-                else {
+                else if (this.modelRef.current === null) {
                     console.log('The function \'updateModel\' did not return any value!');
                     return;
                 }
@@ -194,21 +197,24 @@ class MVVM {
             if (!requestSent) {
                 // Initialization or command execution finished.
                 this.statusRef.current = 'idle';
-                this._updateViewModel();
             }
             else {
                 // Initialization or command execution interrupted by API call.
                 if (this.statusRef.current === 'init-exec') {
                     this.handleApiInterrupt && this.handleApiInterrupt();
                     this.statusRef.current = 'init-waiting';
-                    this._updateViewModel();
                 }
                 else if (this.statusRef.current === 'command-exec') {
                     this.handleApiInterrupt && this.handleApiInterrupt();
                     this.statusRef.current = 'command-waiting';
-                    this._updateViewModel();
+                }
+                else {
+                    throw new Error('Invalid status \'' + this.statusRef.current + '\'!');
                 }
             }
+
+            // Update the viewmodel.
+            this._updateViewModel();
         }, [apiChanges]);
     }
 
