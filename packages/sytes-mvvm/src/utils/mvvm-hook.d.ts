@@ -1,9 +1,9 @@
-export type ApiFor<TApiEvents> = {
+export type Api<TApiEvents> = {
     [ApiEvent in keyof TApiEvents as (ApiEvent extends `on${infer ApiMethod}` ? Uncapitalize<ApiMethod> : ApiEvent)]: TApiEvents[ApiEvent]
 };
 
 export type MvvmAction<TModel, TApiData, TApiChanges, TApiEvents> =
-    (model: TModel, apiData: TApiData, apiChanges: TApiChanges, api: ApiFor<TApiEvents>) => void;
+    (model: TModel, apiData: TApiData, apiChanges: TApiChanges, api: Api<TApiEvents>) => void;
 
 export type MvvmCommandActions<TModel, TApiData, TApiChanges, TApiEvents> = {
     [key: string]: (command: MvvmCommand) => MvvmAction<TModel, TApiData, TApiChanges, TApiEvents>[]
