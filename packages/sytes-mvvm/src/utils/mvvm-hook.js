@@ -75,11 +75,11 @@ class MVVM {
      *                     model.someProperty = newPropertyValue;
      *                     return model;
      *                   }
-     * @param {*} initialModelState The initial state of the model. Defaults to 'null'.
+     * @param {*} initialState The initial state of the model. Defaults to 'null'.
      */
-    model = (update, initialModelState) => {
+    model = (update, initialState) => {
         this.updateModel = update;
-        this.initialModelState = initialModelState ?? null;
+        this.initialModelState = initialState ?? null;
         return this;
     }
 
