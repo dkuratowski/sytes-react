@@ -216,6 +216,9 @@ class MVVM {
             // Update the viewmodel.
             this._updateViewModel();
         }, [apiChanges]);
+
+        // Initialize the viewmodel
+        useEffect(this._updateViewModel, []);
     }
 
     _executeActions = (apiData, apiChanges) => {
