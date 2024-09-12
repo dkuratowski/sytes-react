@@ -33,8 +33,3 @@ export type MvvmBuilder<TModel, TViewModel, TApiData, TApiChanges, TApiEvents> =
 };
 
 export function mvvm<TModel, TViewModel, TApiData, TApiChanges, TApiEvents>(): MvvmBuilder<TModel, TViewModel, TApiData, TApiChanges, TApiEvents>;
-
-// export {
-//     MVVMBuilder,
-//     mvvm,
-// }
