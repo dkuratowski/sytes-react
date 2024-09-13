@@ -11,7 +11,7 @@ const FrontendPart = ({children, ...partProps}) => {
     );
 }
 
-FrontendPart.PropertyConnector = ({children, ...propertyConnectorProps}) => {
+FrontendPart.PropertyConnector = (propertyConnectorProps) => {
     return (
         <>
             <ComponentTree.BeginNode type='property-connector' props={propertyConnectorProps} />
@@ -20,7 +20,7 @@ FrontendPart.PropertyConnector = ({children, ...propertyConnectorProps}) => {
     );
 }
 
-FrontendPart.EventConnector = ({children, ...eventConnectorProps}) => {
+FrontendPart.EventConnector = (eventConnectorProps) => {
     return (
         <>
             <ComponentTree.BeginNode type='event-connector' props={eventConnectorProps} />

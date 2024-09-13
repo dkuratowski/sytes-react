@@ -11,7 +11,7 @@ const FrontendStream = ({children, ...streamProps}) => {
     );
 }
 
-FrontendStream.Capacitor = ({children, ...capacitorProps}) => {
+FrontendStream.Capacitor = (capacitorProps) => {
     return (
         <>
             <ComponentTree.BeginNode type='capacitor' props={capacitorProps} />
@@ -20,7 +20,7 @@ FrontendStream.Capacitor = ({children, ...capacitorProps}) => {
     );
 }
 
-FrontendStream.Entry = ({children, ...entryProps}) => {
+FrontendStream.Entry = (entryProps) => {
     return (
         <>
             <ComponentTree.BeginNode type='entry' props={entryProps} />
@@ -39,7 +39,7 @@ FrontendStream.Exit = ({children, ...exitProps}) => {
     );
 }
 
-FrontendStream.Filter = ({children, ...filterProps}) => {
+FrontendStream.Filter = (filterProps) => {
     return (
         <>
             <ComponentTree.BeginNode type='filter' props={filterProps} />
@@ -48,7 +48,7 @@ FrontendStream.Filter = ({children, ...filterProps}) => {
     );
 }
 
-FrontendStream.Interval = ({children, ...intervalProps}) => {
+FrontendStream.Interval = (intervalProps) => {
     return (
         <>
             <ComponentTree.BeginNode type='interval' props={intervalProps} />
@@ -57,7 +57,7 @@ FrontendStream.Interval = ({children, ...intervalProps}) => {
     );
 }
 
-FrontendStream.Map = ({children, ...mapProps}) => {
+FrontendStream.Map = (mapProps) => {
     return (
         <>
             <ComponentTree.BeginNode type='map' props={mapProps} />
@@ -96,7 +96,7 @@ FrontendStream.Scan = ({children, ...scanProps}) => {
     );
 }
 
-FrontendStream.Tap = ({children, ...tapProps}) => {
+FrontendStream.Tap = (tapProps) => {
     return (
         <>
             <ComponentTree.BeginNode type='tap' props={tapProps} />

@@ -221,7 +221,7 @@ const ApiAdapterRender = ({
     return null;
 }
 
-ApiAdapter.Initialize = ({ children, ...initializeProps }) => {
+ApiAdapter.Initialize = (initializeProps) => {
     return (
         <>
             <ComponentTree.BeginNode type='initialize' props={initializeProps} />
