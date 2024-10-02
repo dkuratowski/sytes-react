@@ -1,4 +1,16 @@
 /**
+ * Finds a document resource in a resource tree based on its URI.
+ * 
+ * @param {*} rootResource The root of the resource tree from which the given document resource needs to be found.
+ * @param {*} uri The URI of the document resource to be found.
+ * 
+ * @returns The found document resource or null if not found.
+ */
+export function findDocumentResourceInResourceTreeByUri(rootResource, uri) {
+    return findDocumentResourceInResourceTreeByUriInternal(rootResource, uri);
+}
+
+/**
  * Adds the given document resource to the given collection resource in a resource tree.
  * 
  * @param {*} rootResource The root of the resource tree in which the given document resource needs to be added to the given collection resource.
@@ -42,7 +54,7 @@ export function addDocumentResourceToResourceTree(rootResource, collectionResour
 }
 
 /**
- * Replaces a given document resource in a resource tree based on its type and ID.
+ * Replaces a given document resource in a resource tree based on its URI.
  * 
  * @param {*} rootResource The root of the resource tree in which the given document resource needs to be replaced.
  * @param {*} newResource The new version of the replaced document resource.
@@ -70,7 +82,7 @@ export function replaceDocumentResourceInResourceTree(rootResource, newResource)
 }
 
 /**
- * Deletes a given document resource from a resource tree based on its type and ID.
+ * Deletes a given document resource from a resource tree based on its URI.
  * 
  * @param {*} rootResource The root of the resource tree from which the given document resource needs to be deleted.
  * @param {*} deletedResource The document resource to be deleted.
@@ -128,6 +140,38 @@ export function compareResourceUri(resource, uri) {
 }
 
 // Internal methods
+function findDocumentResourceInResourceTreeByUriInternal(rootResource, uri) {
+    if (rootResource.type === 'collection' || rootResource.type === 'store') {
+        return findDocumentResourceInArrayByUriInternal(rootResource.items, uri);
+    }
+
+    if (rootResource.relations) {
+        for (const relationName in rootResource.relations) {
+            if (compareResourceUri(rootResource.relations[relationName], uri))
+            {
+                return rootResource.relations[relationName];
+            }
+
+            return findDocumentResourceInResourceTreeByUriInternal(rootResource.relations[relationName], uri);
+        }
+    }
+
+    return null;
+}
+
+function findDocumentResourceInArrayByUriInternal(array, uri) {
+    const resourceIdx = array.findIndex(resourceItem => compareResourceUri(resourceItem, uri));
+    if (resourceIdx !== -1) {
+        return array[resourceIdx];
+    }
+
+    for (let i = 0; i < array.length; i++) {
+        return findDocumentResourceInResourceTreeByUriInternal(array[i], uri);
+    }
+
+    return null;
+}
+
 function addDocumentResourceToResourceTreeInternal(rootResource, collectionResource, newResource) {
     if (rootResource.type === 'collection' || rootResource.type === 'store') {
         const foundAndAdded = addDocumentResourceInArrayInternal(rootResource.items, collectionResource, newResource);
