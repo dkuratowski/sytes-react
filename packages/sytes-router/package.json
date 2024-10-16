@@ -1,0 +1,40 @@
+{
+  "name": "@sytes/router",
+  "version": "0.0.0",
+  "description": "Library for easily implementing specific frontend routings.",
+  "author": "Sytes Team",
+  "homepage": "https://github.com/dkuratowski/sytes-react#readme",
+  "license": "MIT",
+  "main": "src/index.ts",
+  "directories": {
+    "lib": "src",
+    "test": "tests"
+  },
+  "files": [
+    "src"
+  ],
+  "keywords": [
+    "react",
+    "react-component",
+    "sytes",
+    "router"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dkuratowski/sytes-react.git"
+  },
+  "scripts": {
+    "test": "node ./tests/sytes-router.test.ts"
+  },
+  "bugs": {
+    "url": "https://github.com/dkuratowski/sytes-react/issues"
+  },
+  "dependencies": {
+    "@babel/runtime": "^7.18.9",
+    "react-router-dom": "^6.27.0"
+  },
+  "peerDependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  }
+}
