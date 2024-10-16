@@ -1,1 +1,1 @@
-export const something: number = 0;
+export { default as WizardRouter } from './components/WizardRouter';
