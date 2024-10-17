@@ -1,5 +1,7 @@
 export {
     default as WizardRouter,
-    WizardConfig,
-    WizardPage,
+    type WizardConfig,
+    type WizardPage,
 } from './components/WizardRouter';
+
+export { default as Wizard } from './components/Wizard';
