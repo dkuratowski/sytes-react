@@ -1,1 +1,5 @@
-export { default as WizardRouter } from './components/WizardRouter';
+export {
+    default as WizardRouter,
+    WizardConfig,
+    WizardPage,
+} from './components/WizardRouter';

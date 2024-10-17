@@ -1,18 +1,37 @@
-import React from 'react';
+import React, { createContext, PropsWithChildren, useContext } from 'react';
 
-import { Route, Routes } from 'react-router-dom';
-import Navigate from './Navigate';
+import { BrowserRouter } from 'react-router-dom';
 
-export default function WizardRouter() {
-    console.log('WizardRouter');
+const WizardConfigCtx = createContext<WizardConfig | null>(null);
 
+export function useWizardConfig(): WizardConfig {
+    const wizardConfig = useContext(WizardConfigCtx);
+    if (!wizardConfig) {
+        throw new Error('WizardConfigCtx not found!');
+    }
+    return wizardConfig;
+}
+
+export type WizardConfig = {
+    baseUrl: string,
+    pages: WizardPage[],
+}
+
+export type WizardPage = {
+    name: string,
+    path: string,
+}
+
+type WizardRouterProps = {
+    config: WizardConfig,
+}
+
+export default function WizardRouter({ config, children }: PropsWithChildren<WizardRouterProps>) {
     return (
-        <Routes>
-            <Route path='/' element={<Navigate to='edit-wedding-info' />} />
-            <Route path='/contact' element={<Navigate to='edit-contact' />} />
-            <Route path='/customer' element={<Navigate to='edit-customer' />} />
-            <Route path='/overview' element={<Navigate to='purchase-overview' />} />
-            <Route path='/result' element={<Navigate to='payment-result' />} />
-        </Routes>
+        <WizardConfigCtx.Provider value={config}>
+            <BrowserRouter basename={config.baseUrl}>
+                {children}
+            </BrowserRouter>
+        </WizardConfigCtx.Provider>
     );
 }
