@@ -4,4 +4,11 @@ export {
     type WizardPage,
 } from './components/WizardRouter';
 
-export { default as Wizard } from './components/Wizard';
+export {
+    default as Wizard,
+    type WizardProps,
+    type NavigateCommand,
+    type OpenTriggerHook,
+    type OpenTriggerHookResult,
+    type OpenTrigger,
+} from './components/Wizard';

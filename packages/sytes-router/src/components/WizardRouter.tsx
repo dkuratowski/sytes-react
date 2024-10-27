@@ -15,6 +15,7 @@ export function useWizardConfig(): WizardConfig {
 export type WizardConfig = {
     baseUrl: string,
     pages: WizardPage[],
+    firstPage: string,
 }
 
 export type WizardPage = {
