@@ -3,10 +3,12 @@ import { Route, Routes, useNavigate } from "react-router-dom";
 import { useWizardConfig, WizardConfig, WizardPage } from "./WizardRouter"
 
 type NavigateProps = {
+    page: string | null,
     onTriggered: () => void,
 };
 
-function Navigate({ onTriggered }: NavigateProps) {
+function Navigate({ page, onTriggered }: NavigateProps) {
+    console.log(`Navigate(page='${page}')`);
     onTriggered();
     return null;
 }
@@ -35,7 +37,6 @@ export default function Wizard({ useOpenTrigger, navigate, onNavigate}: WizardPr
     // The name of the current page or null if the wizard is closed
     const [ currentPage, setCurrentPage ] = useState<string | null>(null);
     console.log(`Wizard(currentPage='${currentPage}')`);
-    console.log(navigate);
 
     const config: WizardConfig = useWizardConfig();
     const { openTrigger } = useOpenTrigger();
@@ -48,20 +49,22 @@ export default function Wizard({ useOpenTrigger, navigate, onNavigate}: WizardPr
                 throw Error(`Page '${to}' not defined in WizardConfig`);
             }
 
-            setCurrentPage(to);
+            console.log(`routerNavigate('${toPage.path}')`);
             routerNavigate(toPage.path);
+
         }
         else {
-            setCurrentPage(null);
+            console.log(`routerNavigate('/')`);
             routerNavigate('/');
         }
     }
 
     function handleRouterNavigated(from: string | null, to: string | null): void {
-        console.log(`Router navigated from '${from}' to '${to}'`);
-
         if (onNavigate && from !== to) {
+            console.log(`Router navigated from '${from}' to '${to}'`);
             onNavigate(from, to);
+            console.log(`setCurrentPage('${to}')`);
+            setCurrentPage(to);
         }
     }
 
@@ -89,13 +92,13 @@ export default function Wizard({ useOpenTrigger, navigate, onNavigate}: WizardPr
     const routes = config.pages.map(page => (
         <Route
             path={page.path}
-            element={<Navigate onTriggered={() => handleRouterNavigated(currentPage, page.name)} />}
+            element={<Navigate page={page.name} onTriggered={() => handleRouterNavigated(currentPage, page.name)} />}
         />
     ))
 
     return (
         <Routes>
-            <Route path='/' element={<Navigate onTriggered={() => handleRouterNavigated(currentPage, null)} />} />
+            <Route path='/' element={<Navigate page={null} onTriggered={() => handleRouterNavigated(currentPage, null)} />} />
             {routes}
         </Routes>
     );
