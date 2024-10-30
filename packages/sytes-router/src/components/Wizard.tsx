@@ -8,7 +8,7 @@ type NavigateProps = {
 };
 
 function Navigate({ page, onTriggered }: NavigateProps) {
-    console.log(`Navigate(page='${page}')`);
+    // console.log(`Navigate(page='${page}')`);
     onTriggered();
     return null;
 }
@@ -36,7 +36,7 @@ export type NavigateCommand = {
 export default function Wizard({ useOpenTrigger, navigate, onNavigate}: WizardProps & { useOpenTrigger: OpenTriggerHook }) {    
     // The name of the current page or null if the wizard is closed
     const [ currentPage, setCurrentPage ] = useState<string | null>(null);
-    console.log(`Wizard(currentPage='${currentPage}')`);
+    // console.log(`Wizard(currentPage='${currentPage}')`);
 
     const config: WizardConfig = useWizardConfig();
     const { openTrigger } = useOpenTrigger();
@@ -49,21 +49,21 @@ export default function Wizard({ useOpenTrigger, navigate, onNavigate}: WizardPr
                 throw Error(`Page '${to}' not defined in WizardConfig`);
             }
 
-            console.log(`routerNavigate('${toPage.path}')`);
+            // console.log(`routerNavigate('${toPage.path}')`);
             routerNavigate(toPage.path);
 
         }
         else {
-            console.log(`routerNavigate('/')`);
+            // console.log(`routerNavigate('/')`);
             routerNavigate('/');
         }
     }
 
     function handleRouterNavigated(from: string | null, to: string | null): void {
         if (onNavigate && from !== to) {
-            console.log(`Router navigated from '${from}' to '${to}'`);
+            // console.log(`Router navigated from '${from}' to '${to}'`);
             onNavigate(from, to);
-            console.log(`setCurrentPage('${to}')`);
+            // console.log(`setCurrentPage('${to}')`);
             setCurrentPage(to);
         }
     }
@@ -73,7 +73,7 @@ export default function Wizard({ useOpenTrigger, navigate, onNavigate}: WizardPr
     //      - if wizard is opened -> disconnect from the open trigger
     if (currentPage === null) {
         openTrigger.connect(() => {
-            console.log(`Open '${config.firstPage}'`);
+            // console.log(`Open '${config.firstPage}'`);
             navigateRouter(config.firstPage);
         });
     }
@@ -84,7 +84,7 @@ export default function Wizard({ useOpenTrigger, navigate, onNavigate}: WizardPr
     // Handle navigation by user interaction.
     useEffect(() => {
         if (navigate && currentPage !== navigate.nextPage) {
-            console.log(`Navigate to '${navigate.nextPage}'`);
+            // console.log(`Navigate to '${navigate.nextPage}'`);
             navigateRouter(navigate.nextPage);
         }
     }, [navigate]);
