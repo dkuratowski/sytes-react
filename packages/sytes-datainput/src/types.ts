@@ -1,3 +1,5 @@
+import { ReactNode } from "react";
+
 export type DataInputFieldConfig<TField, TTargetProp> = {
     // The name of the target property of the control.
     // Default: 'value'
@@ -29,7 +31,11 @@ export type DataInputFieldConfig<TField, TTargetProp> = {
     // A function that converts back the new value of the target property to the new value of the corresponding field of the input
     // data (if it shall not be considered to be undefined based on the result of the DataInputFieldConfig.isToBeUndefined function).
     // Default: value => value
-    convertBack: (value: TTargetProp) => TField
+    convertBack: (value: TTargetProp) => TField,
+
+    // A function that converts the validation info of the corresponding field of the input data to a set of properties of the
+    // control.
+    convertValidation: (info: FieldValidationInfo) => object,
 };
 
 export type DataInputConfig = {
@@ -41,3 +47,12 @@ export type PartialDataInputConfig = {
 }
 
 export type DataChangeEvent = (newData: object) => void;
+
+export type FieldValidationInfo = {
+    info?: string,
+    error?: string,
+}
+
+export type ValidationInfo = {
+    [key: string]: FieldValidationInfo
+}

@@ -1,5 +1,29 @@
 import React, { createContext, PropsWithChildren, useContext } from 'react';
-import { DataChangeEvent, DataInputConfig, DataInputFieldConfig, PartialDataInputConfig } from '../types';
+import { DataChangeEvent, DataInputConfig, DataInputFieldConfig, FieldValidationInfo, PartialDataInputConfig, ValidationInfo } from '../types';
+
+type MuiValidationHelperTextProps = {
+    info?: string,
+    error?: string,
+};
+function MuiValidationHelperText({info, error}: MuiValidationHelperTextProps) {
+    if (info && error) {
+        return (
+            <>
+                <span className='wpwedding-forms-info'>{info}</span><br/>
+                <span className='wpwedding-forms-error'>{error}</span>
+            </>
+        );
+    }
+    else if (!info && error) {
+        return <span className='wpwedding-forms-error'>{error}</span>;
+    }
+    else if (info && !error) {
+        return <span className='wpwedding-forms-info'>{info}</span>;
+    }
+    else {
+        return null;
+    }
+}
 
 const defaultFieldConfig: DataInputFieldConfig<any, any> = {
     targetPropertyName: 'value',
@@ -9,14 +33,19 @@ const defaultFieldConfig: DataInputFieldConfig<any, any> = {
     extractFromEvent: event => event.target.value.trim(),
     isToBeUndefined: value => value === '',
     convertBack: value => value,
+    convertValidation: (validationInfo: FieldValidationInfo) => ({
+        error: 'error' in validationInfo,
+        helperText: <MuiValidationHelperText info={validationInfo.info} error={validationInfo.error} />
+    }),
 };
 
 class DataContext {
     private config: DataInputConfig;
     private data: object;
+    private validation: ValidationInfo;
     private onChange?: DataChangeEvent;
 
-    public constructor(config: PartialDataInputConfig, data: object, onChange?: DataChangeEvent) {
+    public constructor(config: PartialDataInputConfig, data: object, validation?: ValidationInfo, onChange?: DataChangeEvent) {
         this.config = Object.fromEntries(
             Object.entries(config).map(([fieldName, fieldConfig]) => {
                 if (fieldConfig === null) {
@@ -28,6 +57,7 @@ class DataContext {
             })
         );
         this.data = data;
+        this.validation = validation ?? {};
         this.onChange = onChange;
     }
 
@@ -36,6 +66,17 @@ class DataContext {
             throw new Error(`Configuration doesn't exist for data input field '${fieldName}'`);
         }
         return this.config[fieldName];
+    }
+
+    public hasFieldValidationInfo(fieldName: string): boolean {
+        return fieldName in this.validation && this.validation[fieldName] !== undefined;
+    }
+
+    public getFieldValidationInfo(fieldName: string): FieldValidationInfo {
+        if (!(fieldName in this.validation) || this.validation[fieldName] === undefined) {
+            throw new Error(`Field '${fieldName}' has no validation info`);
+        }
+        return this.validation[fieldName];
     }
 
     public isFieldUndefined(fieldName: string): boolean {
@@ -81,10 +122,11 @@ const useDataInputContext = () => {
 type DataInputProps = {
     config: PartialDataInputConfig,
     data: object,
+    validation?: ValidationInfo,
     onChange?: DataChangeEvent,
 };
-const DataInput = ({config, data, onChange, children}: PropsWithChildren<DataInputProps>) => {
-    const ctx = new DataContext(config, data, onChange);
+const DataInput = ({config, data, validation, onChange, children}: PropsWithChildren<DataInputProps>) => {
+    const ctx = new DataContext(config, data, validation, onChange);
 
     return (
         <DataInputContext.Provider value={ctx}>
@@ -116,7 +158,10 @@ DataInput.Field = ({name, children}: PropsWithChildren<DataInputFieldProps>) => 
                 }
             }
         };
-        return React.cloneElement(child as React.ReactElement<any>, newProps);
+
+        const validationProps = ctx.hasFieldValidationInfo(name) ? fieldConfig.convertValidation(ctx.getFieldValidationInfo(name)) : {};
+
+        return React.cloneElement(child as React.ReactElement<any>, { ...newProps, ...validationProps });
     });
 
     return (
