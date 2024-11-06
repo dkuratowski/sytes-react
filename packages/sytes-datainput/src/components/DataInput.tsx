@@ -1,5 +1,5 @@
 import React, { createContext, PropsWithChildren, useContext } from 'react';
-import { DataInputConfig, DataInputFieldConfig } from '../types';
+import { DataChangeEvent, DataInputConfig, DataInputFieldConfig } from '../types';
 
 class DataContext {
     private data: object;
