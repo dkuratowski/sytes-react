@@ -1,4 +1,3 @@
-import { ReactNode } from "react";
 
 export type DataInputFieldConfig<TField, TTargetProp> = {
     // The name of the target property of the control.
