@@ -2,6 +2,7 @@ export {
     type DataInputConfig,
     type DataInputFieldConfig,
     type DataChangeEvent,
+    type PartialDataInputConfig,
 } from './types';
 
 export {

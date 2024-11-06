@@ -1,15 +1,34 @@
 import React, { createContext, PropsWithChildren, useContext } from 'react';
-import { DataChangeEvent, DataInputConfig, DataInputFieldConfig } from '../types';
+import { DataChangeEvent, DataInputConfig, DataInputFieldConfig, PartialDataInputConfig } from '../types';
+
+const defaultFieldConfig: DataInputFieldConfig<any, any> = {
+    targetPropertyName: 'value',
+    convert: value => value,
+    convertUndefined: () => '',
+    sourceEventName: 'onChange',
+    extractFromEvent: event => event.target.value.trim(),
+    isToBeUndefined: value => value === '',
+    convertBack: value => value,
+};
 
 class DataContext {
-    private data: object;
-    private onChange: DataChangeEvent;
     private config: DataInputConfig;
+    private data: object;
+    private onChange?: DataChangeEvent;
 
-    public constructor(data: object, onChange: DataChangeEvent, config: DataInputConfig) {
+    public constructor(config: PartialDataInputConfig, data: object, onChange?: DataChangeEvent) {
+        this.config = Object.fromEntries(
+            Object.entries(config).map(([fieldName, fieldConfig]) => {
+                if (fieldConfig === null) {
+                    return [fieldName, defaultFieldConfig]
+                }
+                else {
+                    return [fieldName, {...defaultFieldConfig, ...config}]
+                }
+            })
+        );
         this.data = data;
         this.onChange = onChange;
-        this.config = config;
     }
 
     public getFieldConfig<TField, TTargetProp>(fieldName: string): DataInputFieldConfig<TField, TTargetProp> {
@@ -60,12 +79,12 @@ const useDataInputContext = () => {
 }
 
 type DataInputProps = {
+    config: PartialDataInputConfig,
     data: object,
-    onChange: DataChangeEvent,
-    config: DataInputConfig,
+    onChange?: DataChangeEvent,
 };
-const DataInput = ({data, onChange, config, children}: PropsWithChildren<DataInputProps>) => {
-    const ctx = new DataContext(data, onChange, config);
+const DataInput = ({config, data, onChange, children}: PropsWithChildren<DataInputProps>) => {
+    const ctx = new DataContext(config, data, onChange);
 
     return (
         <DataInputContext.Provider value={ctx}>
