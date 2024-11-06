@@ -10,3 +10,7 @@ export {
 export {
     default as DataInput,
 } from './components/DataInput';
+
+export {
+    convertValidationMui
+} from './validation/mui';

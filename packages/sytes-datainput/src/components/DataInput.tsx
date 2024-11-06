@@ -1,29 +1,6 @@
 import React, { createContext, PropsWithChildren, useContext } from 'react';
 import { DataChangeEvent, DataInputConfig, DataInputFieldConfig, FieldValidationInfo, PartialDataInputConfig, ValidationInfo } from '../types';
-
-type MuiValidationHelperTextProps = {
-    info?: string,
-    error?: string,
-};
-function MuiValidationHelperText({info, error}: MuiValidationHelperTextProps) {
-    if (info && error) {
-        return (
-            <>
-                <span className='wpwedding-forms-info'>{info}</span><br/>
-                <span className='wpwedding-forms-error'>{error}</span>
-            </>
-        );
-    }
-    else if (!info && error) {
-        return <span className='wpwedding-forms-error'>{error}</span>;
-    }
-    else if (info && !error) {
-        return <span className='wpwedding-forms-info'>{info}</span>;
-    }
-    else {
-        return null;
-    }
-}
+import { convertValidationMui } from '../validation/mui';
 
 const defaultFieldConfig: DataInputFieldConfig<any, any> = {
     targetPropertyName: 'value',
@@ -33,10 +10,7 @@ const defaultFieldConfig: DataInputFieldConfig<any, any> = {
     extractFromEvent: event => event.target.value.trim(),
     isToBeUndefined: value => value === '',
     convertBack: value => value,
-    convertValidation: (validationInfo: FieldValidationInfo) => ({
-        error: 'error' in validationInfo,
-        helperText: <MuiValidationHelperText info={validationInfo.info} error={validationInfo.error} />
-    }),
+    convertValidation: convertValidationMui,
 };
 
 class DataContext {
