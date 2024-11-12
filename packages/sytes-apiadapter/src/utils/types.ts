@@ -1,5 +1,25 @@
+export type Method = 'post' | 'get' | 'put' | 'delete';
+
+export type ResourceFieldValidationPolicy = {
+    policy: string,
+}
+
+export type ResourceTypeMetadata = {
+    validation?: { [fieldName: string]: ResourceFieldValidationPolicy[] },
+}
+
+export type Metadata = {
+    methods?: Method[],
+    resourceTypes?: { [resourceType: string]: ResourceTypeMetadata },
+}
+
 // TODO: define!
 export type Resource = any;
+
+export type ResourceValidationError = {
+    error: string,
+    details?: { [fieldName: string]: ResourceFieldValidationPolicy[] },
+}
 
 // TODO: define!
 export type ApiResponse = any;

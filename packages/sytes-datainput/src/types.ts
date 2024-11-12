@@ -48,6 +48,7 @@ export type PartialDataInputConfig = {
 export type DataChangeEvent = (newData: object) => void;
 
 export type FieldValidationInfo = {
+    required?: boolean,
     info?: string,
     error?: string,
 }
