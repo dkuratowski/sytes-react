@@ -1,3 +1,5 @@
+import { ApiResource } from "../types";
+
 /**
  * Finds a document resource in a resource tree based on its URI.
  * 
@@ -6,7 +8,7 @@
  * 
  * @returns The found document resource or null if not found.
  */
-export function findDocumentResourceInResourceTreeByUri(rootResource, uri) {
+export function findDocumentResourceInResourceTreeByUri(rootResource: ApiResource, uri: string): ApiResource | null {
     return findDocumentResourceInResourceTreeByUriInternal(rootResource, uri);
 }
 
@@ -20,13 +22,13 @@ export function findDocumentResourceInResourceTreeByUri(rootResource, uri) {
  * @returns The shallow copy of the resource tree if the collection resource was found and the document resource was added to that collection resource,
  *          otherwise null.
  */
-export function addDocumentResourceToResourceTree(rootResource, collectionResource, newResource) {
+export function addDocumentResourceToResourceTree(rootResource: ApiResource, collectionResource: ApiResource, newResource: ApiResource): ApiResource | null {
     if (rootResource.type === 'collection' || rootResource.type === 'store') {
         if (rootResource === collectionResource) {
             return {
                 ...rootResource,
                 items: [
-                    ...rootResource.items,
+                    ...(rootResource.items ?? []),
                     newResource
                 ]
             };
@@ -35,7 +37,7 @@ export function addDocumentResourceToResourceTree(rootResource, collectionResour
             const rootResourceCopy = {
                 ...rootResource,
                 items: [
-                    ...rootResource.items
+                    ...(rootResource.items ?? [])
                 ]
             };
 
@@ -59,14 +61,14 @@ export function addDocumentResourceToResourceTree(rootResource, collectionResour
  * @param {*} rootResource The root of the resource tree in which the given document resource needs to be replaced.
  * @param {*} newResource The new version of the replaced document resource.
  * 
- * @returns The shallow copy of the resource tree if the document resource was found and replaced, otherwise false.
+ * @returns The shallow copy of the resource tree if the document resource was found and replaced, otherwise null.
  */
-export function replaceDocumentResourceInResourceTree(rootResource, newResource) {
+export function replaceDocumentResourceInResourceTree(rootResource: ApiResource, newResource: ApiResource): ApiResource | null {
     if (rootResource.type === 'collection' || rootResource.type === 'store') {
         const rootResourceCopy = {
             ...rootResource,
             items: [
-                ...rootResource.items
+                ...(rootResource.items ?? [])
             ]
         };
         const foundAndReplaced = replaceDocumentResourceInResourceTreeInternal(rootResourceCopy, newResource);
@@ -87,14 +89,14 @@ export function replaceDocumentResourceInResourceTree(rootResource, newResource)
  * @param {*} rootResource The root of the resource tree from which the given document resource needs to be deleted.
  * @param {*} deletedResource The document resource to be deleted.
  * 
- * @returns The shallow copy of the resource tree if the document resource was found and deleted, otherwise false.
+ * @returns The shallow copy of the resource tree if the document resource was found and deleted, otherwise null.
  */
-export function deleteDocumentResourceFromResourceTree(rootResource, deletedResource) {
+export function deleteDocumentResourceFromResourceTree(rootResource: ApiResource, deletedResource: ApiResource): ApiResource | null {
     if (rootResource.type === 'collection' || rootResource.type === 'store') {
         const rootResourceCopy = {
             ...rootResource,
             items: [
-                ...rootResource.items
+                ...(rootResource.items ?? [])
             ]
         };
         const foundAndDeleted = deleteDocumentResourceFromResourceTreeInternal(rootResourceCopy, deletedResource);
@@ -117,31 +119,27 @@ export function deleteDocumentResourceFromResourceTree(rootResource, deletedReso
  * 
  * @returns True if the given resources have the same URI, otherwise false.
  */
-export function compareResourcesByUri(resourceA, resourceB) {
+export function compareResourcesByUri(resourceA: ApiResource, resourceB: ApiResource): boolean {
     return (
-        'apiLinks' in resourceA && 'self' in resourceA.apiLinks &&
-        'apiLinks' in resourceB && 'self' in resourceB.apiLinks &&
+        !!resourceA.apiLinks?.self && !!resourceB.apiLinks?.self &&
         resourceA.apiLinks.self === resourceB.apiLinks.self
     ) || (
-        'webLinks' in resourceA && 'self' in resourceA.webLinks &&
-        'webLinks' in resourceB && 'self' in resourceB.webLinks &&
+        !!resourceA.webLinks?.self && !!resourceB.webLinks?.self &&
         resourceA.webLinks.self === resourceB.webLinks.self
     );
 }
 
-export function compareResourceUri(resource, uri) {
-    return (
-        'apiLinks' in resource && 'self' in resource.apiLinks &&
-        resource.apiLinks.self === uri
-    ) || (
-        'webLinks' in resource && 'self' in resource.webLinks &&
-        resource.webLinks.self === uri
-    );
+export function compareResourceUri(resource: ApiResource, uri: string): boolean {
+    return (!!resource.apiLinks?.self && resource.apiLinks.self === uri) ||
+        (!!resource.webLinks?.self && resource.webLinks.self === uri);
 }
 
 // Internal methods
-function findDocumentResourceInResourceTreeByUriInternal(rootResource, uri) {
+function findDocumentResourceInResourceTreeByUriInternal(rootResource: ApiResource, uri: string): ApiResource | null {
     if (rootResource.type === 'collection' || rootResource.type === 'store') {
+        if (!rootResource.items) {
+            rootResource.items = [];
+        }
         return findDocumentResourceInArrayByUriInternal(rootResource.items, uri);
     }
 
@@ -159,7 +157,7 @@ function findDocumentResourceInResourceTreeByUriInternal(rootResource, uri) {
     return null;
 }
 
-function findDocumentResourceInArrayByUriInternal(array, uri) {
+function findDocumentResourceInArrayByUriInternal(array: ApiResource[], uri: string): ApiResource | null {
     const resourceIdx = array.findIndex(resourceItem => compareResourceUri(resourceItem, uri));
     if (resourceIdx !== -1) {
         return array[resourceIdx];
@@ -172,8 +170,11 @@ function findDocumentResourceInArrayByUriInternal(array, uri) {
     return null;
 }
 
-function addDocumentResourceToResourceTreeInternal(rootResource, collectionResource, newResource) {
+function addDocumentResourceToResourceTreeInternal(rootResource: ApiResource, collectionResource: ApiResource, newResource: ApiResource): boolean {
     if (rootResource.type === 'collection' || rootResource.type === 'store') {
+        if (!rootResource.items) {
+            rootResource.items = [];
+        }
         const foundAndAdded = addDocumentResourceInArrayInternal(rootResource.items, collectionResource, newResource);
         if (foundAndAdded) {
             return true;
@@ -183,10 +184,13 @@ function addDocumentResourceToResourceTreeInternal(rootResource, collectionResou
     if (rootResource.relations) {
         for (const relationName in rootResource.relations) {
             if (rootResource.relations[relationName] === collectionResource) {
-                rootResource.relations[relationName].items.push(newResource);
+                if (!collectionResource.items) {
+                    collectionResource.items = [];
+                }
+                collectionResource.items.push(newResource);
                 return true;
             }
-            const foundAndAdded = addDocumentResourceToResourceTreeInternal(rootResource.relations[relationName], collectionResource, newResource);
+            const foundAndAdded = addDocumentResourceToResourceTreeInternal(collectionResource, collectionResource, newResource);
             if (foundAndAdded) {
                 return true;
             }
@@ -196,10 +200,13 @@ function addDocumentResourceToResourceTreeInternal(rootResource, collectionResou
     return false;
 }
 
-function addDocumentResourceInArrayInternal(array, collectionResource, newResource) {
+function addDocumentResourceInArrayInternal(array: ApiResource[], collectionResource: ApiResource, newResource: ApiResource): boolean {
     const collectionIdx = array.indexOf(collectionResource);
     if (collectionIdx !== -1) {
-        array[collectionIdx].items.push(newResource);
+        if (!collectionResource.items) {
+            collectionResource.items = [];
+        }
+        collectionResource.items.push(newResource);
         return true;
     }
 
@@ -213,8 +220,11 @@ function addDocumentResourceInArrayInternal(array, collectionResource, newResour
     return false;
 }
 
-function replaceDocumentResourceInResourceTreeInternal(rootResource, newResource) {
+function replaceDocumentResourceInResourceTreeInternal(rootResource: ApiResource, newResource: ApiResource): boolean {
     if (rootResource.type === 'collection' || rootResource.type === 'store') {
+        if (!rootResource.items) {
+            rootResource.items = [];
+        }
         const foundAndReplaced = replaceDocumentResourceInArrayInternal(rootResource.items, newResource);
         if (foundAndReplaced) {
             return true;
@@ -238,7 +248,7 @@ function replaceDocumentResourceInResourceTreeInternal(rootResource, newResource
     return false;
 }
 
-function replaceDocumentResourceInArrayInternal(array, newResource) {
+function replaceDocumentResourceInArrayInternal(array: ApiResource[], newResource: ApiResource): boolean {
     const resourceIdx = array.findIndex(resourceItem => compareResourcesByUri(resourceItem, newResource));
     if (resourceIdx !== -1) {
         array.splice(resourceIdx, 1, newResource);
@@ -255,8 +265,11 @@ function replaceDocumentResourceInArrayInternal(array, newResource) {
     return false;
 }
 
-function deleteDocumentResourceFromResourceTreeInternal(rootResource, deletedResource) {
+function deleteDocumentResourceFromResourceTreeInternal(rootResource: ApiResource, deletedResource: ApiResource): boolean {
     if (rootResource.type === 'collection' || rootResource.type === 'store') {
+        if (!rootResource.items) {
+            rootResource.items = [];
+        }
         const foundAndDeleted = deleteDocumentResourceFromArrayInternal(rootResource.items, deletedResource);
         if (foundAndDeleted) {
             return true;
@@ -280,7 +293,7 @@ function deleteDocumentResourceFromResourceTreeInternal(rootResource, deletedRes
     return false;
 }
 
-function deleteDocumentResourceFromArrayInternal(array, deletedResource) {
+function deleteDocumentResourceFromArrayInternal(array: ApiResource[], deletedResource: ApiResource): boolean {
     const resourceIdx = array.findIndex(resourceItem => compareResourcesByUri(resourceItem, deletedResource));
     if (resourceIdx !== -1) {
         array.splice(resourceIdx, 1);

@@ -1,5 +1,16 @@
+import {
+    DeleteResourceRequest,
+    GetResourceByUrlRequest,
+    GetResourceRequest,
+    InvokeResourceRequest,
+    ApiResource,
+    StoreResourceRequest,
+    UpdateResourceByUrlRequest,
+    UpdateResourceRequest,
+    UploadFileToResourceRequest
+} from "../types";
 
-export function getResource(resource) {
+export function getResource(resource: ApiResource): GetResourceRequest {
     return {
         type: 'get-resource',
         params: {
@@ -8,7 +19,7 @@ export function getResource(resource) {
     }
 }
 
-export function getResourceByUrl(url) {
+export function getResourceByUrl(url: string): GetResourceByUrlRequest {
     return {
         type: 'get-resource',
         params: {
@@ -17,7 +28,7 @@ export function getResourceByUrl(url) {
     }
 }
 
-export function storeResource(collection, newResource) {
+export function storeResource(collection: ApiResource, newResource: ApiResource): StoreResourceRequest {
     return {
         type: 'store-resource',
         params: {
@@ -27,7 +38,7 @@ export function storeResource(collection, newResource) {
     };
 }
 
-export function updateResource(resource, updatedResource) {
+export function updateResource(resource: ApiResource, updatedResource: ApiResource): UpdateResourceRequest {
     return {
         type: 'update-resource',
         params: {
@@ -37,7 +48,7 @@ export function updateResource(resource, updatedResource) {
     };
 }
 
-export function updateResourceByUrl(url, updatedResource) {
+export function updateResourceByUrl(url: string, updatedResource: ApiResource): UpdateResourceByUrlRequest {
     return {
         type: 'update-resource',
         params: {
@@ -47,7 +58,7 @@ export function updateResourceByUrl(url, updatedResource) {
     };
 }
 
-export function deleteResource(deletedResource) {
+export function deleteResource(deletedResource: ApiResource): DeleteResourceRequest {
     return {
         type: 'delete-resource',
         params: {
@@ -56,7 +67,7 @@ export function deleteResource(deletedResource) {
     };
 }
 
-export function uploadFileToResource(resource, procedure, file) {
+export function uploadFileToResource(resource: ApiResource, procedure: string, file: File): UploadFileToResourceRequest {
     return {
         type: 'invoke-resource',
         params: {
@@ -67,7 +78,7 @@ export function uploadFileToResource(resource, procedure, file) {
     };
 }
 
-export function invokeResource(resource, procedure, data) {
+export function invokeResource(resource: ApiResource, procedure: string, data: object): InvokeResourceRequest {
     return {
         type: 'invoke-resource',
         params: {
