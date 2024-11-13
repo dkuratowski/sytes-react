@@ -5,14 +5,10 @@ import {
     Request,
     DeleteHandler,
     GetHandler,
-    GetResourceByUrlRequest,
-    GetResourceRequest,
     InvokeHandler,
     InvokeResourceRequest,
     StoreHandler,
     UpdateHandler,
-    UpdateResourceByUrlRequest,
-    UpdateResourceRequest,
     UploadFileToResourceRequest,
     Job,
     ApiAdapterStatus,
@@ -22,9 +18,8 @@ import {
     CompleteHandler,
     ApiResourceRelations,
     ApiResponse,
-    ApiError,
     ApiResponseHandler,
-    ApiErrorHandler,
+    ErrorHandler,
 } from '../types';
 
 class InitializeNodeSearch extends ComponentTreeNodeSearchByTypes {
@@ -49,6 +44,7 @@ function createJob(
     onUpdate?: UpdateHandler,
     onDelete?: DeleteHandler,
     onInvoke?: InvokeHandler,
+    onError?: ErrorHandler,
 ): Job | never {
     if (request.type === 'store-resource') {
         const collectionUrl: string | null = request.params.collection.apiLinks?.self ?? null;
@@ -57,8 +53,10 @@ function createJob(
         }
 
         return {
+            request: request,
             send: () => httpClient.post(collectionUrl, { data: request.params.data }),
             receive: response => onStore && response.data && onStore(request.params.collection, response.data as ApiResource),
+            error: error => onError && onError(error),
         };
     }
     else if (request.type === 'get-resource') {
@@ -69,8 +67,10 @@ function createJob(
             }
     
             return {
+                request: request,
                 send: () => httpClient.get(resourceUrl),
-                receive: response => onGet && response.data && onGet(response.data as ApiResource)
+                receive: response => onGet && response.data && onGet(response.data as ApiResource),
+                error: error => onError && onError(error),
             };
         }
         else if ('url' in request.params) {
@@ -80,8 +80,10 @@ function createJob(
             }
     
             return {
+                request: request,
                 send: () => httpClient.get(resourceUrl),
                 receive: response => onGet && response.data && onGet(response.data as ApiResource),
+                error: error => onError && onError(error),
             };
         }
         else {
@@ -96,9 +98,11 @@ function createJob(
             }
     
             return {
+                request: request,
                 send: () => httpClient.put(resourceUrl, { data: request.params.data }),
                 //send: () => httpClient.post(resourceUrl, { method: 'put', data: request.params.data }),
                 receive: response => onUpdate && response.data && onUpdate(response.data as ApiResource),
+                error: error => onError && onError(error),
             };
         }
         else if ('url' in request.params) {
@@ -108,9 +112,11 @@ function createJob(
             }
     
             return {
+                request: request,
                 send: () => httpClient.put(resourceUrl, { data: request.params.data }),
                 //send: () => httpClient.post(resourceUrl, { method: 'put', data: request.params.data }),
                 receive: response => onUpdate && response.data && onUpdate(response.data as ApiResource),
+                error: error => onError && onError(error),
             };
         }
     }
@@ -121,9 +127,11 @@ function createJob(
         }
 
         return {
+            request: request,
             send: () => httpClient.delete(resourceUrl),
             //send: () => httpClient.post(resourceUrl, { method: 'delete' }),
             receive: response => onDelete && onDelete(request.params.resource),
+            error: error => onError && onError(error),
         };
     }
     else if (request.type === 'invoke-resource') {
@@ -144,14 +152,18 @@ function createJob(
 
         if ('data' in request.params) {
             return {
+                request: request,
                 send: () => httpClient.post(procedureUrl, { data: (request as InvokeResourceRequest).params.data }),
                 receive: response => onInvoke && response.data && onInvoke(request.params.resource, request.params.procedure, response.data),
+                error: error => onError && onError(error),
             };
         }
         else if ('file' in request.params) {
             return {
+                request: request,
                 send: () => httpClient.file(procedureUrl, (request as UploadFileToResourceRequest).params.file),
                 receive: response => onInvoke && response.data && onInvoke(request.params.resource, request.params.procedure, response.data),
+                error: error => onError && onError(error),
             };
         }
         else {
@@ -173,31 +185,29 @@ function createCompleteJob(requestBatches: Request[][], onComplete?: CompleteHan
     };
 
     return {
+        request: null,
         send: () => completeJobPromise,
         receive: () => onComplete && onComplete(requestBatches),
+        error: error => { throw new Error('Impossible case happened'); },
     };
 }
 
-// TODO: check if this is OK with WPAPIWrapper as the httpClient.
-function createErrorNotification(onError) {
-    return (error) => {
-        if (onError) {
-            // console.log(JSON.parse(JSON.stringify(error)));
-            onError(error);
-            // if (error.response) {
-            //     onError('Server error: ', error.response.status);
-            // } else if (error.request) {
-            //     onError('No response');
-            // } else {
-            //     onError('Unknown error');
-            // }
-        }
-    }
-}
+function handleJobFailed(job: Job, response: ApiResponse | null, httpStatus: number | null, status: ApiAdapterStatus) {
+    // Remove the job from the current job batch.
+    status.jobBatch.splice(status.jobBatch.indexOf(job), 1);
+    // Save the corresponding notification into the current notification batch.
+    status.notificationBatch.push(() => job.error({
+        request: job.request,
+        response: response,
+        httpStatus: httpStatus,
+    }));
 
-function handleJobFailed(job: Job, error: ApiError, status: ApiAdapterStatus) {
-    console.log('ApiAdapter.handleJobFailed');
-    console.log(error);
+    // If the current request batch has finished then push the notification batch into the notification batch queue.
+    if (status.jobBatch.length === 0) {
+        status.notificationBatchQueue.push(status.notificationBatch);
+        status.notificationBatch = [];
+        processQueue(status);
+    }
 }
 
 function handleJobSucceeded(job: Job, response: ApiResponse, status: ApiAdapterStatus) {
@@ -237,7 +247,7 @@ function processQueue(status: ApiAdapterStatus): void {
     status.jobBatch.forEach(job =>
         job.send()
            .then((response: ApiResponse) => handleJobSucceeded(job, response, status))
-           .catch((error: ApiError) => handleJobFailed(job, error, status))
+           .catch((response: ApiResponse | null, httpStatus: number | null) => handleJobFailed(job, response, httpStatus, status)),
     );
 }
 
@@ -294,7 +304,7 @@ const ApiAdapterRender = ({
 
         const jobBatches: Job[][] = requestBatches.map(
             batch => batch.map(
-                request => createJob(httpClient, request, onStore, onGet, onUpdate, onDelete, onInvoke)
+                request => createJob(httpClient, request, onStore, onGet, onUpdate, onDelete, onInvoke, onError)
             )
         );
         jobBatches.push([createCompleteJob(requestBatches, onComplete)]);

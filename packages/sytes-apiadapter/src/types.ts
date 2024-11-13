@@ -30,7 +30,7 @@ export type GetHandler = (retrievedResource: ApiResource) => void;
 export type UpdateHandler = (updatedResource: ApiResource) => void;
 export type DeleteHandler = (deletedResource: ApiResource) => void;
 export type InvokeHandler = (invokedResource: ApiResource, procedure: string, result: object) => void;
-export type ErrorHandler = (request: Request, response: ApiResponse, status: number) => void;
+export type ErrorHandler = (error: ApiError) => void;
 export type CompleteHandler = (batches: Request[][]) => void;
 
 
@@ -87,9 +87,9 @@ export type ApiResponse = {
 };
 
 export type ApiError = {
-    request: Request,
-    response: ApiResponse,
-    status: number,
+    request: Request | null,        // The original request or null if there was no request input
+    response: ApiResponse | null,   // The response content or null if there was no response content
+    httpStatus: number | null,      // The HTTP status code returned from the server or null in case of unknown error
 };
 
 
@@ -98,7 +98,7 @@ export type ApiError = {
 // API Client types
 // =================================================================
 export type ApiResponseHandler = (response: ApiResponse) => void;
-export type ApiErrorHandler = (error: ApiError) => void
+export type ApiErrorHandler = (response: ApiResponse | null, httpStatus: number | null) => void
 
 export type ApiRequestPayload = {
     data: ApiResource | object
@@ -123,15 +123,17 @@ export interface ApiClient {
 // Internal types
 // =================================================================
 export type Job = {
-    send: () => ApiClientPromise,
-    receive: (response: ApiResponse) => void,
+    request: Request | null,                    // The original request or null if this is an init or complete job
+    send: () => ApiClientPromise,               // The function for sending the request
+    receive: (response: ApiResponse) => void,   // The function for receiving the response
+    error: (error: ApiError) => void,           // The function for handling errors
 }
 
 export type JobNotification = () => void;
 
 export type ApiAdapterStatus = {
     jobBatchQueue: Job[][],                         // An array of job batches not yet sent to the backend.
-    jobBatch: Job[],                            // The currently processed job batch that has already sent to the server but not yet finished.
+    jobBatch: Job[],                                // The currently processed job batch that has already sent to the server but not yet finished.
     notificationBatch: JobNotification[],           // The notifications of the currently processed batch that needs to be called once every batch has finished.
     notificationBatchQueue: JobNotification[][],    // An array of notification batches that are completely finished.
 };
