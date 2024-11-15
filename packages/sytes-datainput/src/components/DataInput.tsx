@@ -13,13 +13,13 @@ const defaultFieldConfig: DataInputFieldConfig<any, any> = {
     convertValidation: convertValidationMui,
 };
 
-class DataContext {
+class DataContext<TData extends object> {
     private config: DataInputConfig;
-    private data: object;
+    private data: TData;
     private validation: ValidationInfo;
-    private onChange?: DataChangeEvent;
+    private onChange?: DataChangeEvent<TData>;
 
-    public constructor(config: PartialDataInputConfig, data: object, validation?: ValidationInfo, onChange?: DataChangeEvent) {
+    public constructor(config: PartialDataInputConfig, data: TData, validation?: ValidationInfo, onChange?: DataChangeEvent<TData>) {
         this.config = Object.fromEntries(
             Object.entries(config).map(([fieldName, fieldConfig]) => {
                 if (fieldConfig === null) {
@@ -54,7 +54,7 @@ class DataContext {
     }
 
     public isFieldUndefined(fieldName: string): boolean {
-        return fieldName in this.data && this.data[fieldName] !== undefined;
+        return !(fieldName in this.data) || this.data[fieldName] === undefined;
     }
 
     public getField<TField>(fieldName: string): TField {
@@ -65,7 +65,7 @@ class DataContext {
     }
 
     public setField<TField>(fieldName: string, newValue: TField): void {
-        const newData: object = {...this.data};
+        const newData: TData = {...this.data};
         newData[fieldName] = newValue;
 
         const changeDetected = this.data[fieldName] !== newData[fieldName];
@@ -74,7 +74,7 @@ class DataContext {
     }
 
     public unsetField(fieldName: string): void {
-        const newData: object = {...this.data};
+        const newData: TData = {...this.data};
         let changeDetected: boolean = false;
         if (fieldName in newData) {
             delete newData[fieldName];
@@ -85,7 +85,7 @@ class DataContext {
     }
 }
 
-const DataInputContext = createContext<DataContext | null>(null);
+const DataInputContext = createContext<any>(null);
 
 const useDataInputContext = () => {
     const dataInputContext = useContext(DataInputContext);
@@ -93,14 +93,14 @@ const useDataInputContext = () => {
     return dataInputContext;
 }
 
-type DataInputProps = {
+type DataInputProps<TData extends object> = {
     config: PartialDataInputConfig,
-    data: object,
+    data: TData,
     validation?: ValidationInfo,
-    onChange?: DataChangeEvent,
+    onChange?: DataChangeEvent<TData>,
 };
-const DataInput = ({config, data, validation, onChange, children}: PropsWithChildren<DataInputProps>) => {
-    const ctx = new DataContext(config, data, validation, onChange);
+const DataInput = <TData extends object>({config, data, validation, onChange, children}: PropsWithChildren<DataInputProps<TData>>) => {
+    const ctx = new DataContext<TData>(config, data, validation, onChange);
 
     return (
         <DataInputContext.Provider value={ctx}>
@@ -118,7 +118,7 @@ DataInput.Field = ({name, children}: PropsWithChildren<DataInputFieldProps>) => 
 
     const modifiedChildren = React.Children.map(children, child => {
         const newProps = {
-            [fieldConfig.targetPropertyName]: ctx.isFieldUndefined(name) ? fieldConfig.convert(ctx.getField(name)) : fieldConfig.convertUndefined(),
+            [fieldConfig.targetPropertyName]: !ctx.isFieldUndefined(name) ? fieldConfig.convert(ctx.getField(name)) : fieldConfig.convertUndefined(),
             [fieldConfig.sourceEventName]: event => {
                 const newPropertyValue = fieldConfig.extractFromEvent(event);
                 if (name === 'selectedDomains') {

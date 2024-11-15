@@ -45,7 +45,7 @@ export type PartialDataInputConfig = {
     [key: string]: Partial<DataInputFieldConfig<any, any>> | null,
 }
 
-export type DataChangeEvent = (newData: object) => void;
+export type DataChangeEvent<TData extends object> = (newData: TData) => void;
 
 export type FieldValidationInfo = {
     required?: boolean,
