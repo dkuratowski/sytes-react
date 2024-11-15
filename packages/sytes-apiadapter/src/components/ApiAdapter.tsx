@@ -20,6 +20,7 @@ import {
     ApiResponse,
     ApiResponseHandler,
     ErrorHandler,
+    ApiControllerResource,
 } from '../types';
 
 class InitializeNodeSearch extends ComponentTreeNodeSearchByTypes {
@@ -43,7 +44,7 @@ function createJob(
     onGet?: GetHandler,
     onUpdate?: UpdateHandler,
     onDelete?: DeleteHandler,
-    onInvoke?: InvokeHandler,
+    onInvoke?: InvokeHandler<unknown>,
     onError?: ErrorHandler,
 ): Job | never {
     if (request.type === 'store-resource') {
@@ -135,12 +136,17 @@ function createJob(
         };
     }
     else if (request.type === 'invoke-resource') {
-        const resourceRelations: ApiResourceRelations | null = request.params.resource.relations ?? null;
+        const resourceRelations: ApiResourceRelations | null = 'relations' in request.params.resource ?
+            (request.params.resource.relations ?? null) :
+            null;
         if (!resourceRelations) {
             throw new Error(`Controller resource for procedure '${request.params.procedure}' not found`);
         }
 
-        const controllerResource: ApiResource | null = resourceRelations[request.params.procedure] ?? null;
+        const controllerResource: ApiControllerResource | null =
+            request.params.procedure in resourceRelations && resourceRelations[request.params.procedure].type === 'controller' ?
+            (resourceRelations[request.params.procedure] as ApiControllerResource) :
+            null;
         if (!controllerResource) {
             throw new Error(`Controller resource for procedure '${request.params.procedure}' not found`);
         }
@@ -153,7 +159,7 @@ function createJob(
         if ('data' in request.params) {
             return {
                 request: request,
-                send: () => httpClient.post(procedureUrl, { data: (request as InvokeResourceRequest).params.data }),
+                send: () => httpClient.post(procedureUrl, { data: (request as InvokeResourceRequest<unknown>).params.data }),
                 receive: response => onInvoke && response.data && onInvoke(request.params.resource, request.params.procedure, response.data),
                 error: error => onError && onError(error),
             };
@@ -192,7 +198,7 @@ function createCompleteJob(requestBatches: Request[][], onComplete?: CompleteHan
     };
 }
 
-function handleJobFailed(job: Job, response: ApiResponse | null, httpStatus: number | null, status: ApiAdapterStatus) {
+function handleJobFailed(job: Job, response: ApiResponse<unknown> | null, httpStatus: number | null, status: ApiAdapterStatus) {
     // Remove the job from the current job batch.
     status.jobBatch.splice(status.jobBatch.indexOf(job), 1);
     // Save the corresponding notification into the current notification batch.
@@ -210,7 +216,7 @@ function handleJobFailed(job: Job, response: ApiResponse | null, httpStatus: num
     }
 }
 
-function handleJobSucceeded(job: Job, response: ApiResponse, status: ApiAdapterStatus) {
+function handleJobSucceeded(job: Job, response: ApiResponse<unknown>, status: ApiAdapterStatus) {
     // Remove the job from the current job batch.
     status.jobBatch.splice(status.jobBatch.indexOf(job), 1);
     // Save the corresponding notification into the current notification batch.
@@ -246,8 +252,8 @@ function processQueue(status: ApiAdapterStatus): void {
     status.jobBatch = jobBatch;
     status.jobBatch.forEach(job =>
         job.send()
-           .then((response: ApiResponse) => handleJobSucceeded(job, response, status))
-           .catch((response: ApiResponse | null, httpStatus: number | null) => handleJobFailed(job, response, httpStatus, status)),
+           .then((response: ApiResponse<unknown>) => handleJobSucceeded(job, response, status))
+           .catch((response: ApiResponse<unknown> | null, httpStatus: number | null) => handleJobFailed(job, response, httpStatus, status)),
     );
 }
 

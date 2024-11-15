@@ -7,7 +7,11 @@ import {
     StoreResourceRequest,
     UpdateResourceByUrlRequest,
     UpdateResourceRequest,
-    UploadFileToResourceRequest
+    UploadFileToResourceRequest,
+    ApiCollectionResource,
+    ApiDocumentResourceInput,
+    ApiDocumentResource,
+    ApiControllerResource
 } from "../types";
 
 export function getResource(resource: ApiResource): GetResourceRequest {
@@ -28,7 +32,10 @@ export function getResourceByUrl(url: string): GetResourceByUrlRequest {
     }
 }
 
-export function storeResource(collection: ApiResource, newResource: ApiResource): StoreResourceRequest {
+export function storeResource<TBody extends object | unknown = undefined>(
+    collection: ApiCollectionResource,
+    newResource: ApiDocumentResourceInput<TBody>,
+): StoreResourceRequest<TBody> {
     return {
         type: 'store-resource',
         params: {
@@ -38,7 +45,10 @@ export function storeResource(collection: ApiResource, newResource: ApiResource)
     };
 }
 
-export function updateResource(resource: ApiResource, updatedResource: ApiResource): UpdateResourceRequest {
+export function updateResource<TBody extends object | unknown = undefined>(
+    resource: ApiDocumentResource<TBody, unknown>,
+    updatedResource: ApiDocumentResourceInput<TBody>,
+): UpdateResourceRequest<TBody> {
     return {
         type: 'update-resource',
         params: {
@@ -48,7 +58,10 @@ export function updateResource(resource: ApiResource, updatedResource: ApiResour
     };
 }
 
-export function updateResourceByUrl(url: string, updatedResource: ApiResource): UpdateResourceByUrlRequest {
+export function updateResourceByUrl<TBody extends object | unknown = undefined>(
+    url: string,
+    updatedResource: ApiDocumentResourceInput<TBody>
+): UpdateResourceByUrlRequest<TBody> {
     return {
         type: 'update-resource',
         params: {
@@ -58,7 +71,7 @@ export function updateResourceByUrl(url: string, updatedResource: ApiResource): 
     };
 }
 
-export function deleteResource(deletedResource: ApiResource): DeleteResourceRequest {
+export function deleteResource(deletedResource: ApiDocumentResource<unknown, unknown>): DeleteResourceRequest {
     return {
         type: 'delete-resource',
         params: {
@@ -67,7 +80,7 @@ export function deleteResource(deletedResource: ApiResource): DeleteResourceRequ
     };
 }
 
-export function uploadFileToResource(resource: ApiResource, procedure: string, file: File): UploadFileToResourceRequest {
+export function uploadFileToResource(resource: ApiControllerResource, procedure: string, file: File): UploadFileToResourceRequest {
     return {
         type: 'invoke-resource',
         params: {
@@ -78,7 +91,11 @@ export function uploadFileToResource(resource: ApiResource, procedure: string, f
     };
 }
 
-export function invokeResource(resource: ApiResource, procedure: string, data: object): InvokeResourceRequest {
+export function invokeResource<TParams extends object | unknown = undefined>(
+    resource: ApiControllerResource,
+    procedure: string,
+    data: TParams
+): InvokeResourceRequest<TParams> {
     return {
         type: 'invoke-resource',
         params: {

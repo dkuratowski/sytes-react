@@ -1,4 +1,4 @@
-import { ApiResource } from "../types";
+import { ApiCollectionResource, ApiDocumentResource, ApiResource, ApiStoreResource } from "../types";
 
 /**
  * Finds a document resource in a resource tree based on its URI.
@@ -8,7 +8,13 @@ import { ApiResource } from "../types";
  * 
  * @returns The found document resource or null if not found.
  */
-export function findDocumentResourceInResourceTreeByUri(rootResource: ApiResource, uri: string): ApiResource | null {
+export function findDocumentResourceInResourceTreeByUri<
+    TBody extends object | unknown = undefined,
+    THeader extends object | unknown = undefined,
+>(
+    rootResource: ApiResource,
+    uri: string
+): ApiDocumentResource<TBody, THeader> | null {
     return findDocumentResourceInResourceTreeByUriInternal(rootResource, uri);
 }
 
@@ -22,22 +28,29 @@ export function findDocumentResourceInResourceTreeByUri(rootResource: ApiResourc
  * @returns The shallow copy of the resource tree if the collection resource was found and the document resource was added to that collection resource,
  *          otherwise null.
  */
-export function addDocumentResourceToResourceTree(rootResource: ApiResource, collectionResource: ApiResource, newResource: ApiResource): ApiResource | null {
+export function addDocumentResourceToResourceTree<
+    TBody extends object | unknown = undefined,
+    THeader extends object | unknown = undefined,
+>(
+    rootResource: ApiResource,
+    collectionResource: ApiCollectionResource,
+    newResource: ApiDocumentResource<TBody, THeader>,
+): ApiResource | null {
     if (rootResource.type === 'collection' || rootResource.type === 'store') {
         if (rootResource === collectionResource) {
             return {
-                ...rootResource,
+                ...collectionResource,
                 items: [
-                    ...(rootResource.items ?? []),
+                    ...(collectionResource.items ?? []),
                     newResource
                 ]
             };
         }
         else {
-            const rootResourceCopy = {
-                ...rootResource,
+            const rootResourceCopy: ApiCollectionResource | ApiStoreResource = {
+                ...(rootResource as ApiCollectionResource | ApiStoreResource),
                 items: [
-                    ...(rootResource.items ?? [])
+                    ...((rootResource as ApiCollectionResource | ApiStoreResource).items ?? [])
                 ]
             };
 
@@ -46,7 +59,7 @@ export function addDocumentResourceToResourceTree(rootResource: ApiResource, col
         }
     }
     else {
-        const rootResourceCopy = {
+        const rootResourceCopy: ApiResource = {
             ...rootResource
         };
 
@@ -63,19 +76,25 @@ export function addDocumentResourceToResourceTree(rootResource: ApiResource, col
  * 
  * @returns The shallow copy of the resource tree if the document resource was found and replaced, otherwise null.
  */
-export function replaceDocumentResourceInResourceTree(rootResource: ApiResource, newResource: ApiResource): ApiResource | null {
+export function replaceDocumentResourceInResourceTree<
+    TBody extends object | unknown = undefined,
+    THeader extends object | unknown = undefined,
+>(
+    rootResource: ApiResource,
+    newResource: ApiDocumentResource<TBody, THeader>,
+): ApiResource | null {
     if (rootResource.type === 'collection' || rootResource.type === 'store') {
-        const rootResourceCopy = {
-            ...rootResource,
+        const rootResourceCopy: ApiCollectionResource | ApiStoreResource = {
+            ...(rootResource as ApiCollectionResource | ApiStoreResource),
             items: [
-                ...(rootResource.items ?? [])
+                ...((rootResource as ApiCollectionResource | ApiStoreResource).items ?? [])
             ]
         };
         const foundAndReplaced = replaceDocumentResourceInResourceTreeInternal(rootResourceCopy, newResource);
         return foundAndReplaced ? rootResourceCopy : null;
     }
     else {
-        const rootResourceCopy = {
+        const rootResourceCopy: ApiResource = {
             ...rootResource
         };
         const foundAndReplaced = replaceDocumentResourceInResourceTreeInternal(rootResourceCopy, newResource);
@@ -91,19 +110,22 @@ export function replaceDocumentResourceInResourceTree(rootResource: ApiResource,
  * 
  * @returns The shallow copy of the resource tree if the document resource was found and deleted, otherwise null.
  */
-export function deleteDocumentResourceFromResourceTree(rootResource: ApiResource, deletedResource: ApiResource): ApiResource | null {
+export function deleteDocumentResourceFromResourceTree(
+    rootResource: ApiResource,
+    deletedResource: ApiDocumentResource<unknown, unknown>
+): ApiResource | null {
     if (rootResource.type === 'collection' || rootResource.type === 'store') {
-        const rootResourceCopy = {
-            ...rootResource,
+        const rootResourceCopy: ApiCollectionResource | ApiStoreResource = {
+            ...(rootResource as ApiCollectionResource | ApiStoreResource),
             items: [
-                ...(rootResource.items ?? [])
+                ...((rootResource as ApiCollectionResource | ApiStoreResource).items ?? [])
             ]
         };
         const foundAndDeleted = deleteDocumentResourceFromResourceTreeInternal(rootResourceCopy, deletedResource);
         return foundAndDeleted ? rootResourceCopy : null;
     }
     else {
-        const rootResourceCopy = {
+        const rootResourceCopy: ApiResource = {
             ...rootResource
         };
         const foundAndDeleted = deleteDocumentResourceFromResourceTreeInternal(rootResourceCopy, deletedResource);
@@ -135,19 +157,22 @@ export function compareResourceUri(resource: ApiResource, uri: string): boolean 
 }
 
 // Internal methods
-function findDocumentResourceInResourceTreeByUriInternal(rootResource: ApiResource, uri: string): ApiResource | null {
+function findDocumentResourceInResourceTreeByUriInternal<
+    TBody extends object | unknown = undefined,
+    THeader extends object | unknown = undefined,
+>(
+    rootResource: ApiResource,
+    uri: string
+): ApiDocumentResource<TBody, THeader> | null {
     if (rootResource.type === 'collection' || rootResource.type === 'store') {
-        if (!rootResource.items) {
-            rootResource.items = [];
-        }
-        return findDocumentResourceInArrayByUriInternal(rootResource.items, uri);
+        return findDocumentResourceInArrayByUriInternal((rootResource as ApiCollectionResource | ApiStoreResource).items, uri);
     }
 
-    if (rootResource.relations) {
+    if ('relations' in rootResource) {
         for (const relationName in rootResource.relations) {
             if (compareResourceUri(rootResource.relations[relationName], uri))
             {
-                return rootResource.relations[relationName];
+                return (rootResource.relations[relationName] as ApiDocumentResource<TBody, THeader>);
             }
 
             return findDocumentResourceInResourceTreeByUriInternal(rootResource.relations[relationName], uri);
@@ -157,10 +182,16 @@ function findDocumentResourceInResourceTreeByUriInternal(rootResource: ApiResour
     return null;
 }
 
-function findDocumentResourceInArrayByUriInternal(array: ApiResource[], uri: string): ApiResource | null {
+function findDocumentResourceInArrayByUriInternal<
+    TBody extends object | unknown = undefined,
+    THeader extends object | unknown = undefined,
+>(
+    array: ApiDocumentResource<unknown, unknown>[],
+    uri: string
+): ApiDocumentResource<TBody, THeader> | null {
     const resourceIdx = array.findIndex(resourceItem => compareResourceUri(resourceItem, uri));
     if (resourceIdx !== -1) {
-        return array[resourceIdx];
+        return (array[resourceIdx] as ApiDocumentResource<TBody, THeader>);
     }
 
     for (let i = 0; i < array.length; i++) {
@@ -170,18 +201,22 @@ function findDocumentResourceInArrayByUriInternal(array: ApiResource[], uri: str
     return null;
 }
 
-function addDocumentResourceToResourceTreeInternal(rootResource: ApiResource, collectionResource: ApiResource, newResource: ApiResource): boolean {
+function addDocumentResourceToResourceTreeInternal<
+    TBody extends object | unknown = undefined,
+    THeader extends object | unknown = undefined,
+>(
+    rootResource: ApiResource,
+    collectionResource: ApiCollectionResource,
+    newResource: ApiDocumentResource<TBody, THeader>
+): boolean {
     if (rootResource.type === 'collection' || rootResource.type === 'store') {
-        if (!rootResource.items) {
-            rootResource.items = [];
-        }
-        const foundAndAdded = addDocumentResourceInArrayInternal(rootResource.items, collectionResource, newResource);
+        const foundAndAdded = addDocumentResourceInArrayInternal((rootResource as ApiCollectionResource | ApiStoreResource).items, collectionResource, newResource);
         if (foundAndAdded) {
             return true;
         }
     }
 
-    if (rootResource.relations) {
+    if ('relations' in rootResource) {
         for (const relationName in rootResource.relations) {
             if (rootResource.relations[relationName] === collectionResource) {
                 if (!collectionResource.items) {
@@ -200,12 +235,16 @@ function addDocumentResourceToResourceTreeInternal(rootResource: ApiResource, co
     return false;
 }
 
-function addDocumentResourceInArrayInternal(array: ApiResource[], collectionResource: ApiResource, newResource: ApiResource): boolean {
+function addDocumentResourceInArrayInternal<
+    TBody extends object | unknown = undefined,
+    THeader extends object | unknown = undefined,
+>(
+    array: ApiDocumentResource<unknown, unknown>[],
+    collectionResource: ApiCollectionResource,
+    newResource: ApiDocumentResource<TBody, THeader>
+): boolean {
     const collectionIdx = array.indexOf(collectionResource);
     if (collectionIdx !== -1) {
-        if (!collectionResource.items) {
-            collectionResource.items = [];
-        }
         collectionResource.items.push(newResource);
         return true;
     }
@@ -220,18 +259,21 @@ function addDocumentResourceInArrayInternal(array: ApiResource[], collectionReso
     return false;
 }
 
-function replaceDocumentResourceInResourceTreeInternal(rootResource: ApiResource, newResource: ApiResource): boolean {
+function replaceDocumentResourceInResourceTreeInternal<
+    TBody extends object | unknown = undefined,
+    THeader extends object | unknown = undefined,
+>(
+    rootResource: ApiResource,
+    newResource: ApiDocumentResource<TBody, THeader>
+): boolean {
     if (rootResource.type === 'collection' || rootResource.type === 'store') {
-        if (!rootResource.items) {
-            rootResource.items = [];
-        }
-        const foundAndReplaced = replaceDocumentResourceInArrayInternal(rootResource.items, newResource);
+        const foundAndReplaced = replaceDocumentResourceInArrayInternal((rootResource as ApiCollectionResource | ApiStoreResource).items, newResource);
         if (foundAndReplaced) {
             return true;
         }
     }
 
-    if (rootResource.relations) {
+    if ('relations' in rootResource) {
         for (const relationName in rootResource.relations) {
             if (compareResourcesByUri(rootResource.relations[relationName], newResource))
             {
@@ -248,7 +290,13 @@ function replaceDocumentResourceInResourceTreeInternal(rootResource: ApiResource
     return false;
 }
 
-function replaceDocumentResourceInArrayInternal(array: ApiResource[], newResource: ApiResource): boolean {
+function replaceDocumentResourceInArrayInternal<
+    TBody extends object | unknown = undefined,
+    THeader extends object | unknown = undefined,
+>(
+    array: ApiDocumentResource<unknown, unknown>[],
+    newResource: ApiDocumentResource<TBody, THeader>
+): boolean {
     const resourceIdx = array.findIndex(resourceItem => compareResourcesByUri(resourceItem, newResource));
     if (resourceIdx !== -1) {
         array.splice(resourceIdx, 1, newResource);
@@ -265,18 +313,18 @@ function replaceDocumentResourceInArrayInternal(array: ApiResource[], newResourc
     return false;
 }
 
-function deleteDocumentResourceFromResourceTreeInternal(rootResource: ApiResource, deletedResource: ApiResource): boolean {
+function deleteDocumentResourceFromResourceTreeInternal(
+    rootResource: ApiResource,
+    deletedResource: ApiDocumentResource<unknown, unknown>
+): boolean {
     if (rootResource.type === 'collection' || rootResource.type === 'store') {
-        if (!rootResource.items) {
-            rootResource.items = [];
-        }
-        const foundAndDeleted = deleteDocumentResourceFromArrayInternal(rootResource.items, deletedResource);
+        const foundAndDeleted = deleteDocumentResourceFromArrayInternal((rootResource as ApiCollectionResource | ApiStoreResource).items, deletedResource);
         if (foundAndDeleted) {
             return true;
         }
     }
 
-    if (rootResource.relations) {
+    if ('relations' in rootResource) {
         for (const relationName in rootResource.relations) {
             if (compareResourcesByUri(rootResource.relations[relationName], deletedResource))
             {
@@ -293,7 +341,10 @@ function deleteDocumentResourceFromResourceTreeInternal(rootResource: ApiResourc
     return false;
 }
 
-function deleteDocumentResourceFromArrayInternal(array: ApiResource[], deletedResource: ApiResource): boolean {
+function deleteDocumentResourceFromArrayInternal(
+    array: ApiDocumentResource<unknown, unknown>[],
+    deletedResource: ApiDocumentResource<unknown, unknown>
+): boolean {
     const resourceIdx = array.findIndex(resourceItem => compareResourcesByUri(resourceItem, deletedResource));
     if (resourceIdx !== -1) {
         array.splice(resourceIdx, 1);
