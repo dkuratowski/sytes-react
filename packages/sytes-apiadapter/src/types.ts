@@ -177,11 +177,9 @@ export type ApiDocumentResourceResponse<
     THeader extends object | unknown = undefined,
 > = ApiResponse<ApiDocumentResource<TBody, THeader>>;
 
-export type ApiValidationErrorResponse = ApiResponse<ApiValidationError>;
-
 export type ApiError = {
     request: Request | null,        // The original request or null if there was no request input
-    response: ApiResponse<unknown> | null,   // The response content or null if there was no response content
+    response: ApiResponse<ApiValidationError> | null,   // The response content or null if there was no response content
     httpStatus: number | null,      // The HTTP status code returned from the server or null in case of unknown error
 };
 

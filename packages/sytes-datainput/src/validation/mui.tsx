@@ -29,7 +29,7 @@ export function MuiValidationHelperText({info, error}: MuiValidationHelperTextPr
 export function convertValidationMui(validationInfo: FieldValidationInfo): object {
     return {
         required: !!validationInfo.required,
-        error: 'error' in validationInfo,
+        error: !!validationInfo.error,
         helperText: <MuiValidationHelperText info={validationInfo.info} error={validationInfo.error} />
     };
 }

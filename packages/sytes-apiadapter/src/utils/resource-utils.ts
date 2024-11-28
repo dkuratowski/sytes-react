@@ -175,7 +175,11 @@ function findDocumentResourceInResourceTreeByUriInternal<
                 return (rootResource.relations[relationName] as ApiDocumentResource<TBody, THeader>);
             }
 
-            return findDocumentResourceInResourceTreeByUriInternal(rootResource.relations[relationName], uri);
+            const foundResource: ApiDocumentResource<TBody, THeader> | null =
+                findDocumentResourceInResourceTreeByUriInternal(rootResource.relations[relationName], uri);
+            if (foundResource) {
+                return foundResource;
+            }
         }
     }
 
@@ -195,8 +199,11 @@ function findDocumentResourceInArrayByUriInternal<
     }
 
     for (let i = 0; i < array.length; i++) {
-        return findDocumentResourceInResourceTreeByUriInternal(array[i], uri);
-    }
+        const foundResource: ApiDocumentResource<TBody, THeader> | null = findDocumentResourceInResourceTreeByUriInternal(array[i], uri);
+        if (foundResource) {
+            return foundResource;
+        }
+}
 
     return null;
 }
