@@ -40,8 +40,8 @@ declare module '@sytes/mvvm' {
         (model: TModel, apiData: TApiData, apiChanges: TApiChanges) => boolean;
 
     export type MvvmCheckResult<TModel, TApiData, TApiChanges, TApiEvents> = {
-        then: MvvmAction<TModel, TApiData, TApiChanges, TApiEvents>,
-        else:  MvvmAction<TModel, TApiData, TApiChanges, TApiEvents>,
+        then: (action: MvvmAction<TModel, TApiData, TApiChanges, TApiEvents>) => MvvmCheckResult<TModel, TApiData, TApiChanges, TApiEvents> & MvvmAction<TModel, TApiData, TApiChanges, TApiEvents>,
+        else:  (action: MvvmAction<TModel, TApiData, TApiChanges, TApiEvents>) => MvvmAction<TModel, TApiData, TApiChanges, TApiEvents>,
     }
 
     export function checkIf<TModel, TApiData, TApiChanges, TApiEvents>(
