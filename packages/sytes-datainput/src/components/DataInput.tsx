@@ -121,9 +121,6 @@ DataInput.Field = ({name, children}: PropsWithChildren<DataInputFieldProps>) => 
             [fieldConfig.targetPropertyName]: !ctx.isFieldUndefined(name) ? fieldConfig.convert(ctx.getField(name)) : fieldConfig.convertUndefined(),
             [fieldConfig.sourceEventName]: event => {
                 const newPropertyValue = fieldConfig.extractFromEvent(event);
-                if (name === 'selectedDomains') {
-                    console.log(newPropertyValue);
-                }
                 if (fieldConfig.isToBeUndefined(newPropertyValue)) {
                     ctx.unsetField(name);
                 }
