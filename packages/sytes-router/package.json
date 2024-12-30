@@ -1,7 +1,7 @@
 {
-  "name": "@sytes/apiadapter",
+  "name": "@sytes/router",
   "version": "0.0.0",
-  "description": "Adapter component for using the backend APIs of the Sytes Framework.",
+  "description": "Library for easily implementing specific frontend routings.",
   "author": "Sytes Team",
   "homepage": "https://github.com/dkuratowski/sytes-react#readme",
   "license": "MIT",
@@ -17,22 +17,21 @@
     "react",
     "react-component",
     "sytes",
-    "api",
-    "adapter"
+    "router"
   ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/dkuratowski/sytes-react.git"
   },
   "scripts": {
-    "test": "node ./tests/sytes-apiadapter.test.js"
+    "test": "node ./tests/sytes-router.test.ts"
   },
   "bugs": {
     "url": "https://github.com/dkuratowski/sytes-react/issues"
   },
   "dependencies": {
     "@babel/runtime": "^7.18.9",
-    "@sytes/componenttree": "^0.0.0"
+    "react-router-dom": "^6.27.0"
   },
   "peerDependencies": {
     "react": "^18.2.0",
