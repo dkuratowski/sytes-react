@@ -160,7 +160,7 @@ function createJob(
             return {
                 request: request,
                 send: () => httpClient.post(procedureUrl, { data: (request as InvokeResourceRequest<unknown>).params.data }),
-                receive: response => onInvoke && response.data && onInvoke(request.params.resource, request.params.procedure, response.data),
+                receive: response => onInvoke && onInvoke(request.params.resource, request.params.procedure, response.data ?? null),
                 error: error => onError && onError(error),
             };
         }
@@ -168,7 +168,7 @@ function createJob(
             return {
                 request: request,
                 send: () => httpClient.file(procedureUrl, (request as UploadFileToResourceRequest).params.file),
-                receive: response => onInvoke && response.data && onInvoke(request.params.resource, request.params.procedure, response.data),
+                receive: response => onInvoke && onInvoke(request.params.resource, request.params.procedure, response.data ?? null),
                 error: error => onError && onError(error),
             };
         }
