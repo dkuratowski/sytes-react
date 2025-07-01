@@ -232,7 +232,7 @@ function addDocumentResourceToResourceTreeInternal<
                 collectionResource.items.push(newResource);
                 return true;
             }
-            const foundAndAdded = addDocumentResourceToResourceTreeInternal(collectionResource, collectionResource, newResource);
+            const foundAndAdded = addDocumentResourceToResourceTreeInternal(rootResource.relations[relationName], collectionResource, newResource);
             if (foundAndAdded) {
                 return true;
             }
